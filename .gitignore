@@ -1,0 +1,4 @@
+# Todo lo que se genera en cada ronda: inventario, espejo de repos, salidas de Aguara.
+estado/
+__pycache__/
+.env
