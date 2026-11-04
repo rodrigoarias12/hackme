@@ -1,48 +1,80 @@
 # Centinela
 
-Un agente de seguridad que todos los días cruza [Oktsec Radar](https://www.oktsec.com/radar)
-(avisos de seguridad curados por [Oktsec](https://www.oktsec.com)) con **todo** lo que corrés:
-tus repos, tu Mac y tu cuenta de AWS. Le pasa [Aguara](https://github.com/garagon/aguara) a
-cada repo y te avisa por Telegram solo lo que te toca. No bloquea nada.
+[Español](README.es.md)
+
+A security agent that runs every day over **everything you run**: your repos, your Mac and your
+AWS account. It cross-matches [Oktsec Radar](https://www.oktsec.com/radar) advisories against your
+real inventory, scans every repo with [Aguara](https://github.com/garagon/aguara), reads what AWS
+GuardDuty, Security Hub and Inspector found, and tells you only what is new and affects you.
+It blocks nothing and fixes nothing: it looks, compares and reports.
 
 ```
 bin/centinela ronda
-  ├─ inventario   cada carpeta de ~/Documents/GitHub + la Mac
-  │               (paquetes npm/PyPI/Go, imágenes Docker, actions, MCP, servicios,
-  │                apps, brew, extensiones de Cursor/VS Code, runtimes)
-  ├─ aguara       espejo liviano (sin secretos, deps ni builds) → scan con --monitor
-  │               + check de paquetes comprometidos sobre el repo real
-  │               + aviso de archivos de secretos versionados en git (solo nombres)
-  ├─ radar        items.json de Radar × inventario → candidatos con fuerza
+  ├─ inventario   every folder in ~/Documents/GitHub + the Mac
+  │               (npm/PyPI/Go packages, Docker images, Actions, MCP configs, services,
+  │                apps, brew, Cursor/VS Code extensions, runtimes)
+  ├─ aguara       secret-free mirror → scan with --monitor
+  │               + compromised-package check on the real repo
+  │               + secret files committed to git (names only)
+  ├─ radar        Radar's items.json × inventory → candidates with a match strength
   │               (version-afectada / nombre / mencion)
-  └─ aws          lo que encontraron GuardDuty, Security Hub e Inspector (solo lectura)
+  └─ aws          GuardDuty, Security Hub and Inspector findings (read only)
         ↓
-  estado/ronda.json
+  estado/ronda.json  (docs/ronda.md)
         ↓
-  el agente (tarea/SKILL.md): juzga cada candidato contra el rango afectado, escribe el
-  informe en el repo privado y avisa por Telegram si hay algo nuevo
+  the agent (skills/centinela/SKILL.md) judges each candidate against the affected range,
+  writes the report in a private repo and notifies you on Telegram if something is new
 ```
 
-## Dónde corre
+## Use it with your agent
 
-| | Nube de Claude (rutina diaria) | Mac (tarea local) |
+Centinela is a CLI plus a skill. Any coding agent can drive it.
+
+```bash
+git clone https://github.com/rodrigoarias12/centinela
+cd centinela
+bin/centinela doctor        # tells you what's missing
+bin/centinela init          # creates the private repo for reports (local git)
+```
+
+Then give your agent the skill:
+
+```bash
+npx skills add rodrigoarias12/centinela   # Claude Code, Codex, Cursor, Gemini CLI, …
+```
+
+and ask it to *"run the Centinela round"*. Agents working on this repo should read
+[AGENTS.md](AGENTS.md) first: hard rules, configuration and the output contract.
+
+To make it daily, schedule the same prompt: a Claude Code scheduled task on your machine
+(`CENTINELA_MODO=mac`) and/or a Claude cloud routine over your GitHub repos (`CENTINELA_MODO=nube`;
+the session prepares itself with `bin/preparar-nube`).
+
+| | Cloud routine | Local task |
 |---|---|---|
-| Repos | los que están en GitHub | las carpetas sin remoto |
-| Mac (apps, brew, Node, MCP) | — | sí |
-| AWS | si el ambiente tiene credenciales de solo lectura | perfiles locales |
-| Corre con la Mac apagada | sí | no |
+| Repos | the ones on GitHub | folders without a remote |
+| Mac (apps, brew, runtimes, MCP) | — | yes |
+| AWS | if the environment has read-only credentials | local profiles |
+| Runs with your laptop off | yes | no |
 
-La nube prepara la sesión con `bin/preparar-nube`: baja Aguara del release oficial y
-verifica el checksum.
+## Requirements
 
-## Configurar
+- Python 3.11+ (stdlib only), git, rsync.
+- [Aguara](https://github.com/garagon/aguara) v0.28+: `go install github.com/garagon/aguara/cmd/aguara@latest`.
+- Optional: AWS CLI with a read-only profile (GuardDuty, Security Hub, Inspector).
+- Optional: a Telegram bot (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` in
+  `~/.config/centinela/telegram.env` or the environment).
 
-- **Repo privado** para informes y memoria: `CENTINELA_PRIVADO` (por defecto
-  `~/Documents/GitHub/centinela-privado`). Nunca hagas público ese repo.
-- **Telegram:** creá un bot con @BotFather y poné `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`
-  en `~/.config/centinela/telegram.env` (local) y en las variables del ambiente de la nube.
-- **AWS:** `CENTINELA_AWS="perfil:region,…"` (por defecto `default:us-east-1`). En la nube,
-  usá un usuario IAM de solo lectura (GuardDuty, Security Hub, Inspector).
-- **Aguara** v0.28+ (`go install github.com/garagon/aguara/cmd/aguara@latest`).
+## Ground rules
 
-Reglas para agentes: [CLAUDE.md](CLAUDE.md).
+- Observe only. Nothing outside Centinela's own two repos is modified, ever.
+- Reports and memory live in a **separate private repo**. This repo is only code.
+- Secret files are never copied or opened; committed ones are reported by name.
+- Radar is an editorial selection and Aguara a pattern scanner: not showing up doesn't prove
+  you're safe.
+
+## Credits
+
+Built on [Oktsec](https://www.oktsec.com)'s open source work by Gus Aragón:
+[Radar](https://www.oktsec.com/radar) and [Aguara](https://github.com/garagon/aguara).
+Apache 2.0.

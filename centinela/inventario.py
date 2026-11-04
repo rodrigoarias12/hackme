@@ -1,4 +1,4 @@
-"""Inventario de todo lo que Rodrigo corre: cada repo de ~/Documents/GitHub y la Mac.
+"""Inventario de todo lo que corre el dueño: cada repo de ~/Documents/GitHub y la Mac.
 
 Solo lee. De los repos saca dependencias declaradas y lockeadas, imágenes de Docker,
 actions de GitHub, servidores MCP y pistas de servicios (Vercel, Railway, …). De la Mac,

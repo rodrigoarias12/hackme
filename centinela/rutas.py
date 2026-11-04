@@ -49,7 +49,7 @@ TAMANO_MAXIMO = "2m"
 PODAR = {".git", "node_modules", ".next", ".venv", "venv", "dist", "build", ".turbo",
          ".vercel", ".cache", "__pycache__", "worktrees", "site-packages"}
 
-# Apagado hasta que Rodrigo lo autorice: abrir issues en los repos con hallazgos. Las alertas
+# Apagado hasta que el dueño lo autorice: abrir issues en los repos con hallazgos. Las alertas
 # van como issues al repo privado de Centinela, nunca a los repos revisados.
 ABRIR_ISSUES = False
 
