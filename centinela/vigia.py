@@ -272,11 +272,8 @@ def detectar_cuentas(app, filas, u, ahora):
     tiene_acciones = any("ultima_accion" in f for f in filas)
     for f in filas:
         login = _fecha(f.get("ultimo_login"))
-        creada = _fecha(f.get("creada"))
-        if login is None:
+        if login is None:  # sin dato no es "dormida": no se sabe
             sin_dato += 1
-            if creada and (ahora - creada).days >= u["dormida_dias"]:
-                dormidas.append(f.get("cuenta"))
             continue
         if (ahora - login).days >= u["dormida_dias"]:
             dormidas.append(f.get("cuenta"))
@@ -421,7 +418,8 @@ def _conexion(nombre):
     p = urllib.parse.urlsplit(url)
     env = {"PGHOST": p.hostname or "", "PGPORT": str(p.port or 5432), "PGDATABASE": p.path.lstrip("/"),
            "PGUSER": urllib.parse.unquote(p.username or ""), "PGPASSWORD": urllib.parse.unquote(p.password or ""),
-           "PGCONNECT_TIMEOUT": "10", "PGAPPNAME": "centinela-vigia"}
+           "PGCONNECT_TIMEOUT": "10", "PGAPPNAME": "centinela-vigia",
+           "PGTZ": "UTC"}  # las columnas `timestamp` sin zona se comparan en UTC, como las guarda la app
     for clave, valor in urllib.parse.parse_qsl(p.query):
         if clave == "sslmode":
             env["PGSSLMODE"] = valor
