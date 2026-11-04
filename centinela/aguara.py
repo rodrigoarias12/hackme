@@ -73,13 +73,17 @@ def _clave(repo, f):
 def correr():
     espejar()
     rutas.MEMORIA.mkdir(parents=True, exist_ok=True)
+    # Memoria por repo ({repo: [claves]}). Si un repo falla en una ronda conserva sus claves:
+    # si no, al día siguiente todos sus hallazgos llegarían como "nuevos". Un repo que aparece
+    # por primera vez es línea de base, no un aluvión de avisos.
     previo_p = rutas.MEMORIA / "aguara-previo.json"
-    previo = set(json.loads(previo_p.read_text())) if previo_p.exists() else None
+    previo = json.loads(previo_p.read_text()) if previo_p.exists() else None
+    legado = set(previo) if isinstance(previo, list) else None  # formato viejo: una lista global
     monitor = rutas.MEMORIA / "aguara-monitor"
     monitor.mkdir(parents=True, exist_ok=True)
     comun = ["--format", "json", "--no-update-check"]
 
-    repos, claves = {}, []
+    repos, memoria = {}, {}
     for repo in (p.name for p in rutas.repos()):
         carpeta = rutas.ESPEJO / repo
         if not carpeta.is_dir():
@@ -87,7 +91,13 @@ def correr():
         scan = _json([rutas.AGUARA, "scan", str(carpeta), *comun, "--project-policy", "ignore",
                       "--severity", "medium", "--monitor", "--state-path", str(monitor / f"{repo}.json")])
         check = _json([rutas.AGUARA, "check", str(rutas.GITHUB / repo), *comun])
-        hallazgos = []
+        if legado is not None:
+            antes = legado
+        elif isinstance(previo, dict) and repo in previo:
+            antes = set(previo[repo])
+        else:
+            antes = None  # primera corrida, o repo nuevo: línea de base
+        hallazgos, claves = [], []
         for f in scan.get("findings", []):
             k = _clave(repo, f)
             claves.append(k)
@@ -95,10 +105,15 @@ def correr():
                 "regla": f["rule_id"], "nombre": f["rule_name"], "severidad": SEVERIDAD.get(f["severity"], f["severity"]),
                 "categoria": f["category"], "archivo": f["file_path"], "linea": f.get("line"),
                 "impacto": f.get("decision_impact"), "arreglo": f.get("remediation"),
-                "nuevo": previo is not None and k not in previo,
+                "nuevo": antes is not None and k not in antes,
             })
             hallazgos[-1]["capa"] = _capa(hallazgos[-1])
+        if scan.get("error") and antes is not None:
+            memoria[repo] = sorted(antes)  # scan fallido: no pisar lo que ya sabíamos
+        else:
+            memoria[repo] = sorted(set(claves))
         repos[repo] = {
+            "repo_nuevo": isinstance(previo, dict) and repo not in previo,
             "secretos_versionados": secretos_versionados(repo),
             "veredicto": scan.get("verdict"), "riesgo": round(scan.get("risk_score") or 0, 1),
             "archivos": scan.get("files_scanned"), "error_scan": scan.get("error"),
@@ -121,7 +136,10 @@ def correr():
 
     resultado = {"repos": repos, "mac": mac, "primera_corrida": previo is None}
     (rutas.ESTADO / "aguara.json").write_text(json.dumps(resultado, ensure_ascii=False, indent=1))
-    previo_p.write_text(json.dumps(sorted(set(claves))))
+    # Repos que esta ronda no vio (borrados, o fuera del modo) conservan su memoria.
+    if isinstance(previo, dict):
+        memoria = {**previo, **memoria}
+    previo_p.write_text(json.dumps(memoria, indent=0, sort_keys=True))
     return resultado
 
 

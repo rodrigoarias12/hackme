@@ -99,6 +99,42 @@ class Modos(unittest.TestCase):
                 rutas.GITHUB, rutas.MODO = antes
 
 
+class MemoriaAguara(unittest.TestCase):
+    """Un scan que falla no puede borrar la memoria del repo (si no, mañana todo es "nuevo")."""
+
+    def correr(self, raiz, respuestas):
+        from unittest import mock
+        hallazgo = {"rule_id": "CRED_021", "rule_name": "x", "severity": 3, "category": "c",
+                    "file_path": "CLAUDE.md", "line": 1, "context": [{"is_match": True, "content": "l"}]}
+
+        def falso(args):
+            if args[1] == "scan":
+                repo = Path(args[2]).name
+                return {"error": "timeout"} if respuestas[repo] == "error" else {"findings": [hallazgo]}
+            return {"findings": []}
+
+        with mock.patch.object(aguara, "_json", side_effect=falso), \
+             mock.patch.object(aguara, "espejar"), mock.patch.object(aguara, "secretos_versionados", return_value=[]):
+            return aguara.correr()
+
+    def test_scan_fallido_no_genera_falsos_nuevos(self):
+        with tempfile.TemporaryDirectory() as raiz:
+            raiz = Path(raiz)
+            antes = rutas.GITHUB, rutas.ESPEJO, rutas.MEMORIA, rutas.ESTADO, rutas.MODO
+            try:
+                rutas.GITHUB, rutas.ESPEJO = raiz / "gh", raiz / "espejo"
+                rutas.MEMORIA, rutas.ESTADO, rutas.MODO = raiz / "mem", raiz / "estado", "nube"
+                for d in (rutas.GITHUB / "a", rutas.ESPEJO / "a", rutas.ESTADO):
+                    d.mkdir(parents=True)
+                primera = self.correr(raiz, {"a": "ok"})
+                self.assertFalse(primera["repos"]["a"]["hallazgos"][0]["nuevo"])  # línea de base
+                self.correr(raiz, {"a": "error"})                               # falla un día
+                tercera = self.correr(raiz, {"a": "ok"})                         # vuelve
+                self.assertFalse(tercera["repos"]["a"]["hallazgos"][0]["nuevo"])
+            finally:
+                rutas.GITHUB, rutas.ESPEJO, rutas.MEMORIA, rutas.ESTADO, rutas.MODO = antes
+
+
 class Secretos(unittest.TestCase):
     def test_el_espejo_excluye_secretos(self):
         for patron in (".env", ".env.*", "*.pem", "*.key", "id_rsa*", "credentials*.json"):
