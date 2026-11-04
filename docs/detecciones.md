@@ -44,17 +44,17 @@ Source keys are listed at the end. Every row alerts **only**: Centinela never bl
 
 | # | Detection | What it detects | Signal | Threshold | Status | Source |
 |---|---|---|---|---|---|---|
-| A1 | Failures on one account | Repeated bad credentials against one account | Failed logins by user | [M] ≥ 5 in 15m. [S] NIST caps lockout at ≤ 100 consecutive failures | ○ | AS AE2; LV `authn_login_fail`, `authn_login_fail_max`; ATT T1110.001; NIST63B §3.2.2 |
-| A2 | Spray from one IP | One IP trying many usernames, or a high login rate | Failed logins by IP, distinct users | [M] ≥ 10 distinct users or ≥ 20 attempts per IP in 15m | ○ | AS AE1, AE3, AE12; ATT T1110.003; OAT-007 |
-| A3 | Distributed stuffing | Site-wide rise in failures across many IPs | Failed logins vs. 7-day baseline | [M] > 3× the same slot | ○ | AS STE2; ATT T1110.004; OAT-008 |
-| A4 | Success after failures | A failure run that ends in a login | Success after ≥ N failures, same user or IP, 1h | [M] N = 5, high priority | ○ | LV `authn_login_successafterfail`; ATT T1110, T1078 |
-| A5 | Denied logins | Accounts outside the allowlist trying to get in | Denied logins | [M] ≥ 3 per IP in 15m, or any denial of an email from your own domain (offboarded user) | ○ | LV `authn_login_fail`; ATT T1078 |
-| A6 | New country / impossible travel | Login from a country never seen for that user, or two places too far apart too fast | Successful logins + IP geolocation | [M] any new country; > ~900 km/h | ○ | AS AE13; LV `authn_impossible_travel`; ATT T1078 |
+| A1 | Failures on one account | Repeated bad credentials against one account | Failed logins by user | [M] ≥ 5 in 15m. [S] NIST caps lockout at ≤ 100 consecutive failures | ✅ 15m | AS AE2; LV `authn_login_fail`, `authn_login_fail_max`; ATT T1110.001; NIST63B §3.2.2 |
+| A2 | Spray from one IP | One IP trying many usernames, or a high login rate | Failed logins by IP, distinct users | [M] ≥ 10 distinct users or ≥ 20 attempts per IP in 15m | ✅ 15m | AS AE1, AE3, AE12; ATT T1110.003; OAT-007 |
+| A3 | Distributed stuffing | Site-wide rise in failures across many IPs | Failed logins vs. 7-day baseline | [M] > 3× the same slot | ✅ 15m | AS STE2; ATT T1110.004; OAT-008 |
+| A4 | Success after failures | A failure run that ends in a login | Success after ≥ N failures, same user or IP, 1h | [M] N = 5, high priority | ✅ 15m | LV `authn_login_successafterfail`; ATT T1110, T1078 |
+| A5 | Denied logins | Accounts outside the allowlist trying to get in | Denied logins | [M] ≥ 3 per IP in 15m, or any denial of an email from your own domain (offboarded user) | ✅ 15m | LV `authn_login_fail`; ATT T1078 |
+| A6 | New country / impossible travel | Login from a country never seen for that user, or two places too far apart too fast | Successful logins + IP geolocation | [M] any new country; > ~900 km/h | ✅ 15m | AS AE13; LV `authn_impossible_travel`; ATT T1078 |
 | A7 | Session hijack signs | IP or user agent changes mid-session; expired session or revoked token reused | Request log by session | [M] ≥ 1 (privileged users: always) | ○ | AS SE4, SE5, SE6; LV `session_use_after_expire`, `authn_token_reuse`; ATT T1539, T1550 |
-| A8 | Forced browsing / 404 burst | Path guessing with a wordlist | 404s by IP | [M] ≥ 50 404s or ≥ 20 distinct missing paths per IP in 15m | ○ | AS ACE3; LV `malicious_excess_404`; ATT T1595.003; OAT-014 |
-| A9 | Scanner fingerprint | Attack-tool user agents; probes for `/.env`, `/.git/config`, `/wp-admin`; odd methods | User agent, path, method | [M] ≥ 1 (once per IP per day) | ○ | LV `malicious_attack_tool`; AS RE1, RE2; ATT T1595.002; OAT-018 |
+| A8 | Forced browsing / 404 burst | Path guessing with a wordlist | 404s by IP | [M] ≥ 50 404s or ≥ 20 distinct missing paths per IP in 15m | ✅ 15m | AS ACE3; LV `malicious_excess_404`; ATT T1595.003; OAT-014 |
+| A9 | Scanner fingerprint | Attack-tool user agents; probes for `/.env`, `/.git/config`, `/wp-admin`; odd methods | User agent, path, method | [M] ≥ 1 (once per IP per day) | ✅ 15m | LV `malicious_attack_tool`; AS RE1, RE2; ATT T1595.002; OAT-018 |
 | A10 | Injection attempts | XSS / SQL injection payloads | WAF deny/challenge on managed rules; validation errors | [M] ≥ 1 that reached the app with a 5xx; ≥ 10 blocked per IP | ○ | AS IE1, IE3, CIE1; LV `malicious_sqli`, `input_validation_fail`; ATT T1190 |
-| A11 | Firewall action surge | Abnormal deny / challenge / rate_limit volume | Drain `proxy.wafAction` | [M] > 3× baseline or > 500 in 15m | ○ | LV `excess_rate_limit_exceeded`; ATT T1499.003 |
+| A11 | Firewall action surge | Abnormal deny / challenge / rate_limit volume | Drain `proxy.wafAction` | [M] > 3× baseline or > 500 in 15m | ✅ 15m | LV `excess_rate_limit_exceeded`; ATT T1499.003 |
 | A12 | Authorization failures / IDOR | A logged-in user probing objects they don't own | 403s per user | [M] ≥ 10 per user in 15m | ○ | AS ACE1, ACE2, ACE4; LV `authz_fail`, `malicious_direct_reference` |
 | A13 | Abnormal data volume / scraping | Unusual records or bytes per user | `proxy.responseByteSize` per user | [M] > 10× the user's 30-day p95 | ○ | AS CIE2, UT2, UT4; ATT T1213; OAT-011 |
 | A14 | Honeytrap hit | A decoy path no legitimate client uses | Request log | [M] ≥ 1 | ○ | AS HT2, HT3; ATT T1595 |
@@ -70,30 +70,30 @@ Source keys are listed at the end. Every row alerts **only**: Centinela never bl
 | B4 | GitHub 2FA requirement disabled | Org-wide 2FA turned off | `org.disable_two_factor_requirement` | ≥ 1 | ○ | GH-AUD; CIS Controls 6.3, 6.5 |
 | B5 | GitHub token granted | Fine-grained PAT granted; flag access to all repos | `personal_access_token.access_granted`, `.request_created` | ≥ 1 | ○ | GH-AUD; ATT T1528, T1098.001 |
 | B6 | Vercel team change | Access request, member added or removed, role changed | Team members API + audit events | ≥ 1 | ✅ D (15m ○) | VC-AUD; ATT T1098 |
-| B7 | AWS root use | Root credentials used | CloudTrail `userIdentity.type = Root`; GuardDuty `Policy:IAMUser/RootCredentialUsage` (Low) | [S] ≥ 1 | ◐ only GuardDuty 4+ today | CIS v5 4.3 / CloudWatch.1; GD-IAM |
-| B8 | AWS console sign-in risk | Console login without MFA; console auth failures | `ConsoleLogin` with `MFAUsed != Yes`; `Failed authentication` | [S] ≥ 1 ([M] ≥ 3 in 15m for failures) | ○ | CIS v5 4.2, 4.6 (CloudWatch.3, .6) |
-| B9 | AWS unauthorized API calls | Calls rejected for permissions | `*UnauthorizedOperation`, `AccessDenied*` | [S] ≥ 1; [M] ≥ 10 per principal in 15m | ○ | CIS v5 4.1 / CloudWatch.2 |
-| B10 | New IAM identity or key | IAM user, login profile or access key created | CloudTrail CreateUser / CreateLoginProfile / CreateAccessKey; GuardDuty `Persistence:IAMUser/AnomalousBehavior` | ≥ 1 | ◐ GuardDuty only | ATT T1136.003, T1098.001; GD-IAM |
-| B11 | Stolen AWS credentials | Exfiltrated keys, Tor or malicious IPs, pentest distros | GuardDuty `CredentialAccess:IAMUser/CompromisedCredentials`, `InstanceCredentialExfiltration.OutsideAWS`, `*/TorIPCaller`, `*/MaliciousIPCaller`, `PenTest:IAMUser/KaliLinux` | ≥ 1, any severity | ◐ severity 4+ | GD-IAM; ATT T1078.004, T1552.005 |
-| B12 | Database logins | Anomalous, brute-forced, Tor or malicious-IP logins to RDS | GuardDuty `CredentialAccess:RDS/*`, `Discovery:RDS/*` | ≥ 1, **including Low** | ◐ severity 4+ | GD-RDS; ATT T1110, T1078 |
+| B7 | AWS root use | Root credentials used | CloudTrail `userIdentity.type = Root`; GuardDuty `Policy:IAMUser/RootCredentialUsage` (Low) | [S] ≥ 1 | ✅ 15m | CIS v5 4.3 / CloudWatch.1; GD-IAM |
+| B8 | AWS console sign-in risk | Console login without MFA; console auth failures | `ConsoleLogin` with `MFAUsed != Yes`; `Failed authentication` | [S] ≥ 1 ([M] ≥ 3 in 15m for failures) | ✅ 15m | CIS v5 4.2, 4.6 (CloudWatch.3, .6) |
+| B9 | AWS unauthorized API calls | Calls rejected for permissions | `*UnauthorizedOperation`, `AccessDenied*` | [S] ≥ 1; [M] ≥ 10 per principal in 15m | ✅ 15m | CIS v5 4.1 / CloudWatch.2 |
+| B10 | New IAM identity or key | IAM user, login profile or access key created | CloudTrail CreateUser / CreateLoginProfile / CreateAccessKey; GuardDuty `Persistence:IAMUser/AnomalousBehavior` | ≥ 1 | ✅ 15m | ATT T1136.003, T1098.001; GD-IAM |
+| B11 | Stolen AWS credentials | Exfiltrated keys, Tor or malicious IPs, pentest distros | GuardDuty `CredentialAccess:IAMUser/CompromisedCredentials`, `InstanceCredentialExfiltration.OutsideAWS`, `*/TorIPCaller`, `*/MaliciousIPCaller`, `PenTest:IAMUser/KaliLinux` | ≥ 1, any severity | ✅ 15m | GD-IAM; ATT T1078.004, T1552.005 |
+| B12 | Database logins | Anomalous, brute-forced, Tor or malicious-IP logins to RDS | GuardDuty `CredentialAccess:RDS/*`, `Discovery:RDS/*` | ≥ 1, **including Low** | ✅ 15m | GD-RDS; ATT T1110, T1078 |
 
 ## C. Cloud and infra changes (15m)
 
 | # | Detection | What it detects | Signal | Threshold | Status | Source |
 |---|---|---|---|---|---|---|
-| C1 | CloudTrail tampering | Trail deleted, stopped or changed | Create/Update/DeleteTrail, StopLogging, PutEventSelectors; GuardDuty `Stealth:IAMUser/CloudTrailLoggingDisabled` | [S] ≥ 1 | ○ | CIS v5 4.5 / CloudWatch.5; ATT T1562.008 |
-| C2 | IAM or password policy change | Policies attached/changed; password policy weakened | IAM Put/Delete/Attach/Detach*Policy, CreatePolicyVersion…; GuardDuty `Stealth:IAMUser/PasswordPolicyChange` | [S] ≥ 1 | ○ | CIS v5 4.4 / CloudWatch.4; ATT T1098.003 |
-| C3 | KMS key disabled or scheduled for deletion | Key made unusable | DisableKey, ScheduleKeyDeletion | [S] ≥ 1 | ○ | CIS v5 4.7 / CloudWatch.7; ATT T1485 |
-| C4 | S3 policy / public exposure | Bucket policy, ACL or public access opened | S3 Put/Delete Bucket*; GuardDuty `Policy:S3/*`, `Stealth:S3/ServerAccessLoggingDisabled` | [S] ≥ 1 | ○ | CIS v5 4.8 / CloudWatch.8; GD-S3; ATT T1530 |
-| C5 | AWS Config change | Recorder stopped, delivery channel deleted | StopConfigurationRecorder, DeleteDeliveryChannel | [S] ≥ 1 | ○ | CIS v5 4.9 / CloudWatch.9; ATT T1562.008 |
-| C6 | Network change | Security group, NACL, gateway, route table or VPC changed; escalate if 0.0.0.0/0 opens a database or admin port | CloudTrail EC2 events | [S] ≥ 1 | ○ | CIS v5 4.10–4.14 / CloudWatch.10–14; EC2.53, EC2.54 |
-| C7 | Organizations change | Changes to the AWS Organization | organizations events | [S] ≥ 1 | ○ | CIS v5 4.15 |
-| C8 | Detector disabled | Security Hub or GuardDuty turned off | CloudTrail / API state | ≥ 1 | ○ | CIS v5 4.16 (Security Hub); GuardDuty part [M] |
-| C9 | Database made public / snapshot exfiltration | RDS public; snapshot or restore by an anomalous principal | RDS.2; GuardDuty `Exfiltration:IAMUser/AnomalousBehavior` | ≥ 1 | ◐ Security Hub / GuardDuty 4+ | CIS v5 2.2.3 / RDS.2; ATT T1537 |
-| C10 | Database theft or destruction | Mass SELECT, DROP or DELETE | GuardDuty `Exfiltration:RDS/*`, `Impact:RDS/*` | ≥ 1 | ◐ GuardDuty 4+ | GD-RDS; ATT T1213, T1485 |
+| C1 | CloudTrail tampering | Trail deleted, stopped or changed | Create/Update/DeleteTrail, StopLogging, PutEventSelectors; GuardDuty `Stealth:IAMUser/CloudTrailLoggingDisabled` | [S] ≥ 1 | ✅ 15m | CIS v5 4.5 / CloudWatch.5; ATT T1562.008 |
+| C2 | IAM or password policy change | Policies attached/changed; password policy weakened | IAM Put/Delete/Attach/Detach*Policy, CreatePolicyVersion…; GuardDuty `Stealth:IAMUser/PasswordPolicyChange` | [S] ≥ 1 | ✅ 15m | CIS v5 4.4 / CloudWatch.4; ATT T1098.003 |
+| C3 | KMS key disabled or scheduled for deletion | Key made unusable | DisableKey, ScheduleKeyDeletion | [S] ≥ 1 | ✅ 15m | CIS v5 4.7 / CloudWatch.7; ATT T1485 |
+| C4 | S3 policy / public exposure | Bucket policy, ACL or public access opened | S3 Put/Delete Bucket*; GuardDuty `Policy:S3/*`, `Stealth:S3/ServerAccessLoggingDisabled` | [S] ≥ 1 | ✅ 15m | CIS v5 4.8 / CloudWatch.8; GD-S3; ATT T1530 |
+| C5 | AWS Config change | Recorder stopped, delivery channel deleted | StopConfigurationRecorder, DeleteDeliveryChannel | [S] ≥ 1 | ✅ 15m | CIS v5 4.9 / CloudWatch.9; ATT T1562.008 |
+| C6 | Network change | Security group, NACL, gateway, route table or VPC changed; escalate if 0.0.0.0/0 opens a database or admin port | CloudTrail EC2 events | [S] ≥ 1 | ✅ 15m | CIS v5 4.10–4.14 / CloudWatch.10–14; EC2.53, EC2.54 |
+| C7 | Organizations change | Changes to the AWS Organization | organizations events | [S] ≥ 1 | ✅ 15m | CIS v5 4.15 |
+| C8 | Detector disabled | Security Hub or GuardDuty turned off | CloudTrail / API state | ≥ 1 | ✅ 15m | CIS v5 4.16 (Security Hub); GuardDuty part [M] |
+| C9 | Database made public / snapshot exfiltration | RDS public; snapshot or restore by an anomalous principal | RDS.2; GuardDuty `Exfiltration:IAMUser/AnomalousBehavior` | ≥ 1 | ◐ snapshots and public RDS, 15m | CIS v5 2.2.3 / RDS.2; ATT T1537 |
+| C10 | Database theft or destruction | Mass SELECT, DROP or DELETE | GuardDuty `Exfiltration:RDS/*`, `Impact:RDS/*` | ≥ 1 | ✅ 15m | GD-RDS; ATT T1213, T1485 |
 | C11 | Secrets changed or read | Vercel env vars added/changed/pulled; GitHub Actions secrets changed | Vercel audit events; `org.update_actions_secret` | [M] ≥ 1 outside a deploy | ◐ Vercel, daily | VC-AUD; GH-AUD; ATT T1552 |
 | C12 | Protection, domain or project moved | Preview protection off, DNS changed, domain or project moved out | Vercel audit events / snapshot diff | ≥ 1 | ◐ protection events, daily | VC-AUD |
-| C13 | Log source went silent | A drain, CloudTrail or webhook feed stops sending | Last event per source | [M] > 30 min (prod drain), > 2h (CloudTrail) | ○ | LV `sys_monitor_disabled`; ATT T1562.008 |
+| C13 | Log source went silent | A drain, CloudTrail or webhook feed stops sending | Last event per source | [M] > 30 min (prod drain), > 2h (CloudTrail) | ✅ 15m | LV `sys_monitor_disabled`; ATT T1562.008 |
 
 ## D. Code and supply chain (events 15m, state D)
 
@@ -114,7 +114,7 @@ Source keys are listed at the end. Every row alerts **only**: Centinela never bl
 
 | # | KPI | Signal | Threshold | Status | Source |
 |---|---|---|---|---|---|
-| E1 | Dormant accounts, and accounts that log in but do nothing | Last login and last real action per user; Google `lastLoginTime` | [S] 45 days with no activity. [M] idle: sessions but zero business actions in 30 days | ○ | CIS Controls 5.3 |
+| E1 | Dormant accounts, and accounts that log in but do nothing | Last login and last real action per user; Google `lastLoginTime` | [S] 45 days with no activity. [M] idle: sessions but zero business actions in 30 days | ✅ D (vigía) | CIS Controls 5.3 |
 | E2 | Accounts without MFA | Google `isEnrolledIn2Sv`; IAM credential report `mfa_active`; GitHub org 2FA | target 0 | ○ | CIS Controls 6.3, 6.5; CIS v5 1.9 / IAM.5 |
 | E3 | AWS root hygiene | Root access key, root MFA, hardware MFA | 0 deviations | ◐ via Security Hub | CIS v5 1.3–1.5 (IAM.4, IAM.9, IAM.6) |
 | E4 | Stale access keys | Credential report `access_key_N_last_rotated`; > 1 active key | [S] > 90 days; > 1 key | ○ | CIS v5 1.13 / IAM.3; 1.12 |
@@ -141,18 +141,15 @@ Source keys are listed at the end. Every row alerts **only**: Centinela never bl
 | F8 | Mean age of open critical findings | Average age of unresolved critical/high | ○ | [M] derived |
 | F9 | False-positive rate, and weekly review done | Alerts closed as benign ÷ all alerts | ○ | NIST55 §4.4; CIS Controls 8.11 |
 
-## What the vigía does first
+## What the vigía does (built)
 
-The rows that would have caught a route-probing scan and a wave of login attempts on a web app,
-with data most small teams already have (a log drain and a login events table):
+[vigia.md](vigia.md). Every 15 minutes: **A1–A6, A8, A9, A11** on your apps' request log and login
+events, **C13** when that log goes silent, and on AWS **B7–B12, C1–C8, C10** from CloudTrail and
+GuardDuty at any severity. Once a day: **E1** (dormant accounts, and accounts that log in and do
+nothing when the app records actions).
 
-1. **A8, A9, A11** — route probing, scanner fingerprints, firewall surges (request log).
-2. **A1, A2, A4, A5** — login failures by account and by IP, success after failures, denied logins.
-3. **A6** — logins from a new country.
-4. **C13** — a log source that went quiet (an attacker's first move, or a broken drain).
-5. **B7, B11, B12** at any severity — AWS root and credential findings that the daily round skips
-   today because they are Low.
-6. Daily: **E1** (dormant and idle accounts) and **E6** (offboarding drift).
+Next: A7 (session hijack signs), A12 (authorization probing), A13 (scraping), the GitHub rows (D)
+and the hygiene KPIs (E2–E12).
 
 ## Verification notes
 

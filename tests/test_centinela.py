@@ -169,6 +169,77 @@ class VariablesDeVercel(unittest.TestCase):
         self.assertNotIn("no-deberia-aparecer", json.dumps(self.hallazgos(envs)))
 
 
+class Vigia(unittest.TestCase):
+    """Las detecciones son funciones puras: filas -> alertas."""
+
+    def setUp(self):
+        from centinela import vigia
+        self.v = vigia
+        self.u = dict(vigia.UMBRALES)
+
+    def test_barrido_de_rutas(self):
+        filas = [{"ip": "1.2.3.4", "ruta": f"/api/x{i}", "estado": 404} for i in range(60)]
+        alertas, _ = self.v.detectar_accesos("app", filas, self.u, [])
+        self.assertEqual([a["deteccion"] for a in alertas], ["A8"])
+
+    def test_trafico_normal_no_avisa(self):
+        filas = [{"ip": "1.2.3.4", "ruta": "/api/ordenes", "estado": 401} for _ in range(30)]
+        self.assertEqual(self.v.detectar_accesos("app", filas, self.u, [])[0], [])
+
+    def test_huella_de_escaner(self):
+        alertas, _ = self.v.detectar_accesos("app", [{"ip": "5.5.5.5", "ruta": "/.env", "estado": 404}], self.u, [])
+        self.assertEqual(alertas[0]["deteccion"], "A9")
+
+    def test_spray_desde_una_ip(self):
+        filas = [{"cuando": f"2026-11-04T10:00:{i:02d}", "cuenta": f"u{i}@x.com", "ip": "9.9.9.9",
+                  "resultado": "fallo"} for i in range(12)]
+        alertas, _ = self.v.detectar_logins("app", filas, self.u, [], {}, [])
+        self.assertIn("A2", [a["deteccion"] for a in alertas])
+
+    def test_entra_despues_de_fallos(self):
+        filas = [{"cuando": f"2026-11-04T10:00:{i:02d}", "cuenta": "ana@x.com", "ip": "9.9.9.9",
+                  "resultado": "fallo"} for i in range(5)]
+        filas.append({"cuando": "2026-11-04T10:01:00", "cuenta": "ana@x.com", "ip": "9.9.9.9", "resultado": "ok"})
+        detecciones = [a["deteccion"] for a in self.v.detectar_logins("app", filas, self.u, [], {}, [])[0]]
+        self.assertIn("A4", detecciones)
+        self.assertIn("A1", detecciones)
+
+    def test_pais_nuevo_solo_con_historia(self):
+        paises = {}
+        ok = lambda pais: [{"cuando": "2026-11-04T10:00", "cuenta": "ana@x.com", "ip": "1.1.1.1",  # noqa: E731
+                            "resultado": "ok", "pais": pais}]
+        self.assertEqual(self.v.detectar_logins("app", ok("AR"), self.u, [], paises, [])[0], [])  # primera vez
+        alertas, _ = self.v.detectar_logins("app", ok("RU"), self.u, [], paises, [])
+        self.assertEqual([a["deteccion"] for a in alertas], ["A6"])
+
+    def test_cuentas_sin_fecha_de_login_avisa_que_falta_el_dato(self):
+        import datetime as dt
+        ahora = dt.datetime(2026, 11, 4, tzinfo=dt.timezone.utc)
+        filas = [{"cuenta": "a@x.com", "creada": "2026-10-30", "ultimo_login": None}]
+        claves = [a["clave"] for a in self.v.detectar_cuentas("app", filas, self.u, ahora)]
+        self.assertEqual(claves, ["app:sin-logins"])
+
+    def test_root_y_cambios_de_cloudtrail(self):
+        eventos = [
+            {"eventName": "StopLogging", "userIdentity": {"type": "IAMUser", "arn": "arn:x:user/ana"}, "sourceIPAddress": "1.1.1.1"},
+            {"eventName": "GetBucketAcl", "userIdentity": {"type": "Root"}, "sourceIPAddress": "2.2.2.2"},
+            {"eventName": "PutEvaluations", "userIdentity": {"type": "AWSService"}},
+        ]
+        detecciones = sorted(a["deteccion"] for a in self.v.detectar_cloudtrail("1", eventos, self.u))
+        self.assertEqual(detecciones, ["B7", "C1"])
+
+    def test_guardduty_agrupa_por_tipo_y_recurso(self):
+        h = lambda ip: {"Type": "Discovery:RDS/MaliciousIPCaller", "Severity": 5, "Title": "t",  # noqa: E731
+                        "Resource": {"RdsDbInstanceDetails": {"DbInstanceIdentifier": "db"}},
+                        "Service": {"Count": 1, "Action": {"RemoteIpDetails": {"IpAddressV4": ip}}}}
+        alertas = self.v.detectar_guardduty("1", [h("1.1.1.1"), h("2.2.2.2")])
+        self.assertEqual(len(alertas), 1)
+        self.assertIn("2 IPs", alertas[0]["detalle"])
+
+    def test_guardduty_baja_no_listada_no_avisa(self):
+        self.assertEqual(self.v.detectar_guardduty("1", [{"Type": "Recon:EC2/Portscan", "Severity": 2}]), [])
+
+
 class Secretos(unittest.TestCase):
     def test_el_espejo_excluye_secretos(self):
         for patron in (".env", ".env.*", "*.pem", "*.key", "id_rsa*", "credentials*.json"):

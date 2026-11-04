@@ -50,6 +50,8 @@ judge `estado/ronda.json`, write the report and decide whether to notify.
 | `CENTINELA_PRIVADO` | `$CENTINELA_GITHUB/centinela-privado` | Private repo for `informes/` and `memoria/` |
 | `CENTINELA_AGUARA` | `~/go/bin/aguara` | Aguara binary (v0.28+). In the cloud, `bin/preparar-nube` downloads it and prints the export |
 | `CENTINELA_AWS` | `default:us-east-1` (`:us-east-1` in `nube`) | Comma-separated `profile:region` pairs. Empty profile = use `AWS_*` env credentials |
+| `CENTINELA_VIGIA` | `$CENTINELA_PRIVADO/vigia.json` | The vigía's per-app SQL ([docs/vigia.md](docs/vigia.md)). Connection URLs live in `~/.config/centinela/vigia.env`, never in a repo |
+| `CENTINELA_VIGIA_AWS` | `CENTINELA_AWS` | `profile:region` pairs for the vigía. Use a read-only profile |
 | `VERCEL_TOKEN` | — | Read-only Vercel token (cloud). Locally Centinela uses the logged-in `vercel` CLI (`vercel api`) and never touches a token |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | — | For `bin/avisar`. Or put them in `~/.config/centinela/telegram.env` |
 
@@ -68,7 +70,8 @@ requirement (`doctor`) or Telegram not configured (`bin/avisar`).
 - Python 3.11+, **stdlib only**. No dependencies to install.
 - Layout: `centinela/inventario.py` (inventory), `aguara.py` (scan), `radar.py` (advisory
   matching), `aws.py` (AWS findings), `vercel.py` (Vercel teams, env var hygiene, previews,
-  firewall, audit events), `memoria.py` (new/seen per source), `ronda.py` (glue), `rutas.py`
+  firewall, audit events), `vigia.py` (the 15-minute watch; detections are pure functions),
+  `avisar.py` (Telegram), `memoria.py` (new/seen per source), `ronda.py` (glue), `rutas.py`
   (all paths and knobs).
 - Vercel env vars: only `key`, `type` and `target` are ever read. Never request `decrypt`.
 - Matching is deterministic and deliberately generous; the judgment lives in the skill.

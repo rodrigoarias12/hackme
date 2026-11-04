@@ -10,6 +10,8 @@ uso: bin/centinela <comando>
   aguara       solo el escaneo de repos con Aguara
   aws          solo los hallazgos de GuardDuty, Security Hub e Inspector
   vercel       solo Vercel: equipo, variables, previews, firewall y auditoría
+  vigia        la guardia de 15 minutos: ataques en curso, avisa por Telegram
+               (--sin-avisar: imprime lo que avisaría y no guarda nada)
 
 Configuración por variables de entorno: ver AGENTS.md. Códigos de salida: 0 ok,
 1 error, 2 falta algo (doctor).
@@ -108,6 +110,9 @@ def main(args):
     elif comando == "vercel":
         from . import vercel
         print(vercel.resumen(vercel.correr()))
+    elif comando == "vigia":
+        from . import vigia
+        print(vigia.resumen(vigia.correr(enviar="--sin-avisar" not in args)))
     elif comando == "ronda":
         from . import ronda
         print(ronda.correr(_inventario()))

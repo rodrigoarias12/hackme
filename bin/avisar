@@ -5,41 +5,23 @@ Lee TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID del ambiente o de ~/.config/centinela/
 (líneas CLAVE=valor; ese archivo no vive en ningún repo). Sale con código 2 si Telegram no
 está configurado, para que quien llama use otro canal.
 """
-import json
-import os
 import sys
-import urllib.parse
-import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-def config():
-    valores = {k: os.environ.get(k) for k in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")}
-    archivo = Path.home() / ".config" / "centinela" / "telegram.env"
-    if not all(valores.values()) and archivo.exists():
-        for linea in archivo.read_text().splitlines():
-            clave, _, valor = linea.partition("=")
-            if clave.strip() in valores and not valores[clave.strip()]:
-                valores[clave.strip()] = valor.strip().strip('"\'')
-    return valores["TELEGRAM_BOT_TOKEN"], valores["TELEGRAM_CHAT_ID"]
+from centinela.avisar import mandar  # noqa: E402
 
 
 def main():
     mensaje = " ".join(sys.argv[1:]).strip() or sys.stdin.read().strip()
     if not mensaje:
         sys.exit("uso: bin/avisar \"mensaje\"")
-    token, chat = config()
-    if not token or not chat:
+    ok = mandar(mensaje)
+    if ok is None:
         print("telegram no configurado (faltan TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)", file=sys.stderr)
         sys.exit(2)
-    datos = urllib.parse.urlencode({"chat_id": chat, "text": mensaje[:4000], "disable_web_page_preview": "true"}).encode()
-    try:
-        with urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", datos, timeout=30) as r:
-            ok = json.load(r).get("ok")
-    except Exception as e:  # nunca imprimir la URL: lleva el token
-        print(f"telegram falló: {type(e).__name__}", file=sys.stderr)
-        sys.exit(1)
-    print("enviado por telegram" if ok else "telegram respondió sin ok")
+    print("enviado por telegram" if ok else "telegram falló", file=sys.stdout if ok else sys.stderr)
     sys.exit(0 if ok else 1)
 
 

@@ -8,11 +8,15 @@ con tu inventario real, le pasa [Aguara](https://github.com/garagon/aguara) a ca
 que encontraron GuardDuty, Security Hub e Inspector, revisa tus equipos y proyectos de Vercel, y
 te avisa por Telegram solo lo nuevo que te toca.
 
+Cada 15 minutos, el **vigía** mira lo que está pasando ahora: alguien barriendo tus rutas,
+probando logins, usando la cuenta root de AWS, apagando logs. Te avisa por Telegram mientras pasa.
+
 No bloquea ni arregla nada: mira, compara y avisa. Los arreglos van al informe como propuestas
 para una persona.
 
 - [Cómo funciona](#cómo-funciona)
 - [Qué mira](#qué-mira)
+- [Vigía: la guardia de 15 minutos](#vigía-la-guardia-de-15-minutos)
 - [Instalar](#instalar)
 - [Que corra todos los días](#que-corra-todos-los-días)
 - [Telegram](#telegram)
@@ -67,6 +71,22 @@ primera corrida es la línea de base y después solo aparece lo que cambió.
 
 La lista completa de detecciones, hechas y por hacer, basada en OWASP, MITRE ATT&CK y los
 benchmarks de CIS, está en [docs/detecciones.md](docs/detecciones.md).
+
+## Vigía: la guardia de 15 minutos
+
+```
+bin/centinela vigia               cada 15 min (launchd en la Mac)
+  ├─ tus apps     SQL que escribís vos, solo lectura: accesos, logins, cuentas
+  │               → barridos de rutas, escáneres, picos del firewall, spraying, logins
+  │                 después de fallos, países nuevos, un log que se calló, cuentas dormidas
+  └─ aws          eventos de escritura de CloudTrail + GuardDuty de cualquier severidad
+                  → uso de root, login sin MFA, logs apagados, IAM, S3, KMS, red
+        ↓
+  Telegram, una vez por clave por día, máximo 25 por día
+```
+
+Determinístico, sin IA. Cómo se configura, el formato de las consultas, los usuarios de solo
+lectura para Postgres y AWS, y la tarea de launchd: [docs/vigia.md](docs/vigia.md).
 
 ## Instalar
 
@@ -152,6 +172,8 @@ Todo por variables de entorno. Los defaults sirven para una Mac con los repos en
 | `CENTINELA_AWS` | `default:us-east-1` (`:us-east-1` en `nube`) | Pares `perfil:región` separados por coma. Perfil vacío = credenciales `AWS_*` del ambiente |
 | `CENTINELA_IDIOMA` | español | Idioma en el que el agente escribe el informe |
 | `VERCEL_TOKEN` | — | Token de Vercel de solo lectura (nube). En local se usa la sesión del CLI |
+| `CENTINELA_VIGIA` | `$CENTINELA_PRIVADO/vigia.json` | Las consultas del vigía para tus apps ([docs/vigia.md](docs/vigia.md)) |
+| `CENTINELA_VIGIA_AWS` | `CENTINELA_AWS` | Pares `perfil:región` del vigía; usá un perfil de solo lectura |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | — | Para `bin/avisar`, o en `~/.config/centinela/telegram.env` |
 
 ## Comandos
@@ -165,6 +187,7 @@ bin/centinela radar        Radar contra el último inventario
 bin/centinela aguara       solo el escaneo con Aguara
 bin/centinela aws          solo los hallazgos de AWS
 bin/centinela vercel       solo Vercel
+bin/centinela vigia        la guardia de 15 minutos (--sin-avisar: solo imprime, no guarda)
 bin/avisar "mensaje"       manda un mensaje por Telegram
 bin/preparar-nube          baja y verifica Aguara en una sesión en la nube
 ```
@@ -180,11 +203,14 @@ centinela/                 este repo: solo código, puede ser público
   skills/centinela/        el skill que sigue el agente
   docs/ronda.md            forma de estado/ronda.json
   docs/detecciones.md      catálogo de detecciones
+  docs/vigia.md            la guardia de 15 minutos
   estado/                  la salida de cada ronda y el espejo de repos (gitignored, descartable)
 
 centinela-privado/         repo privado: nunca público
   informes/AAAA-MM-DD-<modo>.md
   memoria/<modo>/          lo que cada fuente ya vio
+  memoria/vigia/           avisos del vigía, líneas de base y países vistos
+  vigia.json               las consultas del vigía para tus apps
 ```
 
 ## Reglas de base
@@ -204,18 +230,16 @@ centinela-privado/         repo privado: nunca público
 
 - Radar es una selección editorial y Aguara un escáner de patrones: que no aparezca algo no prueba
   que estés a salvo.
-- La ronda diaria ve el estado, no el tráfico. Un ataque en curso en AWS lo ve GuardDuty, pero en
-  tus apps web todavía no (ver lo que viene).
+- El vigía solo ve lo que tus apps registran. Si una app no guarda los logins exitosos, nadie
+  puede saber quién entró y no hizo nada; el vigía lo avisa una vez en vez de adivinar.
+- El vigía corre mientras la Mac está prendida. Con la compu cerrada, corrélo en algo siempre prendido.
 - AWS cubre solo las regiones que listás, y los hallazgos de GuardDuty con severidad menor a 4 se
   saltean.
 
 ## Lo que viene
 
-- **Vigía:** una guardia cada 15 minutos sobre los logs de pedidos, las acciones del firewall y
-  los logins, que avisa por Telegram mientras pasa un ataque (fuerza bruta, password spraying,
-  barrido de rutas, logins desde lugares nuevos), más chequeos diarios de identidad (cuentas
-  dormidas, cuentas que entran y no hacen nada). Detecciones en
-  [docs/detecciones.md](docs/detecciones.md).
+- **Vigía:** que corra siempre (un job programado de CI en el repo privado); señales de sesión
+  robada (A7), sondeo de permisos (A12), scraping (A13).
 - **GitHub:** alertas de Dependabot y secret scanning, apps con acceso a todos los repos,
   colaboradores externos, repos que pasan a públicos, Actions sin fijar.
 - **AWS:** uso de root con cualquier severidad, todas las regiones, el credential report de IAM
