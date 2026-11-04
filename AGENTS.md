@@ -72,5 +72,8 @@ requirement (`doctor`) or Telegram not configured (`bin/avisar`).
   (all paths and knobs).
 - Vercel env vars: only `key`, `type` and `target` are ever read. Never request `decrypt`.
 - Matching is deterministic and deliberately generous; the judgment lives in the skill.
+- New detections: pick them from [docs/detecciones.md](docs/detecciones.md) (each row cites its
+  source and says whether its threshold comes from the source or is a starting point) and update
+  the row's status when you build one.
 - Tests: `python3 -m unittest discover -s tests` (no network, no Aguara needed).
 - Code comments and CLI output are in Spanish (rioplatense). Keep that style when editing.

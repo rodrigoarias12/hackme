@@ -2,48 +2,235 @@
 
 [English](README.md)
 
-Un agente de seguridad que corre todos los días sobre **todo lo que corrés**: tus repos, tu Mac y
-tu cuenta de AWS. Cruza los avisos de [Oktsec Radar](https://www.oktsec.com/radar) con tu
-inventario real, le pasa [Aguara](https://github.com/garagon/aguara) a cada repo, lee lo que
-encontraron GuardDuty, Security Hub e Inspector, y te avisa solo lo nuevo que te toca. No bloquea
-ni arregla nada: mira, compara y avisa.
+Un agente de seguridad que mira **todo lo que corrés**: tus repos, tu Mac, tu cuenta de AWS y tus
+equipos de Vercel. Todos los días cruza los avisos de [Oktsec Radar](https://www.oktsec.com/radar)
+con tu inventario real, le pasa [Aguara](https://github.com/garagon/aguara) a cada repo, lee lo
+que encontraron GuardDuty, Security Hub e Inspector, revisa tus equipos y proyectos de Vercel, y
+te avisa por Telegram solo lo nuevo que te toca.
 
-## Usarlo con tu agente
+No bloquea ni arregla nada: mira, compara y avisa. Los arreglos van al informe como propuestas
+para una persona.
+
+- [Cómo funciona](#cómo-funciona)
+- [Qué mira](#qué-mira)
+- [Instalar](#instalar)
+- [Que corra todos los días](#que-corra-todos-los-días)
+- [Telegram](#telegram)
+- [Configuración](#configuración)
+- [Comandos](#comandos)
+- [Dónde vive cada cosa](#dónde-vive-cada-cosa)
+- [Reglas de base](#reglas-de-base)
+- [Límites](#límites)
+- [Lo que viene](#lo-que-viene)
+
+## Cómo funciona
+
+```
+bin/centinela ronda
+  ├─ inventario   cada carpeta de ~/Documents/GitHub + la Mac
+  │               (paquetes npm/PyPI/Go, imágenes Docker, Actions, configs MCP, servicios,
+  │                apps, brew, extensiones de Cursor/VS Code, runtimes)
+  ├─ aguara       espejo sin secretos → scan con --monitor
+  │               + chequeo de paquetes comprometidos en el repo real
+  │               + archivos de secretos versionados en git (solo nombres)
+  ├─ radar        items.json de Radar × inventario → candidatos con fuerza de coincidencia
+  │               (version-afectada / nombre / mencion)
+  ├─ aws          hallazgos de GuardDuty, Security Hub e Inspector (solo lectura)
+  └─ vercel       equipos, higiene de variables, previews, firewall, auditoría (solo lectura)
+        ↓
+  estado/ronda.json  (forma: docs/ronda.md)
+        ↓
+  el agente (skills/centinela/SKILL.md) juzga cada candidato, escribe el informe en un repo
+  privado y te avisa por Telegram si hay algo nuevo
+```
+
+Dos capas a propósito:
+
+- **El CLI** (`centinela/`, solo biblioteca estándar de Python) es determinístico: junta, cruza y
+  recuerda lo que ya vio. Cruza de más a propósito; nunca decide "te afecta".
+- **El skill** es donde el agente juzga: compara la versión instalada con el rango del aviso, lee
+  la línea citada antes de decir que algo es real, descarta datos de prueba y escribe un informe
+  corto y claro.
+
+Cada fuente tiene memoria entre rondas (`nuevo` / `actualizado` / `visto` / `línea de base`): la
+primera corrida es la línea de base y después solo aparece lo que cambió.
+
+## Qué mira
+
+| Fuente | Qué busca | Cómo |
+|---|---|---|
+| **Inventario** | Cada paquete, imagen, GitHub Action, servidor MCP, servicio y *nombre* de variable de tus repos; apps, brew, extensiones del editor, runtimes, npm global y configs MCP de la Mac | Lee manifiestos y lockfiles. Solo `.env.example`, nunca el `.env` real |
+| **Oktsec Radar** | Avisos (vulnerabilidades, ataques a la cadena de suministro, brechas de plataformas, actividad de amenazas) que coinciden con algo que realmente usás | `items.json` × inventario; versiones afectadas exactas con datos de OSV cuando Radar los trae |
+| **Aguara** | Prompt injection e instrucciones peligrosas en skills, `CLAUDE.md`/`AGENTS.md`, configs MCP y workflows; credenciales en el código; paquetes comprometidos; archivos de secretos versionados | `aguara scan --monitor` sobre un espejo sin secretos, `aguara check` sobre el repo real, `git ls-files` para nombres de archivos de secretos |
+| **AWS** | Hallazgos de GuardDuty (severidad 4+), Security Hub HIGH/CRITICAL, Inspector HIGH/CRITICAL | AWS CLI con un perfil de solo lectura, uno o más pares `perfil:región` |
+| **Vercel** | Pedidos de acceso pendientes y miembros nuevos; variables con nombre de secreto y prefijo público (llegan al navegador); secretos `plain`; secretos de producción también en `development` (cualquiera con `vercel env pull` se los lleva a su compu); secretos de producción no `sensitive`; previews sin protección y firewall apagado en proyectos con dominio propio; proyectos viejos publicados; eventos de auditoría (`env pull`, variables cambiadas, miembros, tokens, protección, firewall) | API de Vercel con la sesión del CLI (`vercel api`) o `VERCEL_TOKEN`. De cada variable solo `key`, `type` y `target`, nunca el valor |
+
+La lista completa de detecciones, hechas y por hacer, basada en OWASP, MITRE ATT&CK y los
+benchmarks de CIS, está en [docs/detecciones.md](docs/detecciones.md).
+
+## Instalar
 
 ```bash
 git clone https://github.com/rodrigoarias12/centinela
 cd centinela
-bin/centinela doctor        # te dice qué falta
-bin/centinela init          # crea el repo privado de informes (git local)
-npx skills add rodrigoarias12/centinela   # el skill, para Claude Code, Codex, Cursor, Gemini CLI…
+bin/centinela doctor        # te dice qué falta (sale 2 si falta algo obligatorio)
+bin/centinela init          # crea el repo privado de informes y memoria (git local)
+bin/centinela ronda         # primera ronda: todo queda como línea de base
 ```
 
-Después pedile a tu agente *"corré la ronda de Centinela"*. Los agentes que trabajen en este repo
-leen primero [AGENTS.md](AGENTS.md): reglas, configuración y la forma de la salida
-([docs/ronda.md](docs/ronda.md)).
+Requisitos:
 
-Para que sea diaria, programá el mismo pedido:
-- **Tarea local de Claude Code** (`CENTINELA_MODO=mac`): ve tu Mac, las carpetas sin remoto y los
-  perfiles locales de AWS.
-- **Rutina en la nube de Claude** (`CENTINELA_MODO=nube`): ve tus repos de GitHub y corre con la
-  compu apagada. Se prepara sola con `bin/preparar-nube`.
-
-## Requisitos
-
-- Python 3.11+ (solo biblioteca estándar), git, rsync.
+- Python 3.11+ (solo biblioteca estándar), git, rsync, grep.
 - [Aguara](https://github.com/garagon/aguara) v0.28+: `go install github.com/garagon/aguara/cmd/aguara@latest`.
-- Opcional: AWS CLI con un perfil de solo lectura.
-- Opcional: un bot de Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` en
-  `~/.config/centinela/telegram.env` o en el ambiente).
+  En la nube, `bin/preparar-nube` baja el release y verifica el checksum.
+- Opcional: AWS CLI con un perfil de solo lectura (GuardDuty, Security Hub, Inspector).
+- Opcional: Vercel CLI logueado (`vercel login`) o un `VERCEL_TOKEN` de solo lectura.
+- Opcional: un bot de Telegram (ver [Telegram](#telegram)).
+
+Si subís el repo privado a GitHub, **que sea privado**: tiene los informes con tus hallazgos.
+
+### Con tu agente
+
+Centinela es un CLI más un skill, así que lo puede manejar cualquier agente:
+
+```bash
+npx skills add rodrigoarias12/centinela   # Claude Code, Codex, Cursor, Gemini CLI…
+```
+
+Después pedile *"corré la ronda de Centinela"*. Los agentes que trabajen **sobre** este repo leen
+primero [AGENTS.md](AGENTS.md): reglas, configuración y la forma de la salida.
+
+## Que corra todos los días
+
+Programá el mismo pedido en uno o en los dos lugares:
+
+| | Rutina en la nube (`CENTINELA_MODO=nube`) | Tarea local (`CENTINELA_MODO=mac`) |
+|---|---|---|
+| Repos | los de GitHub, clonados en la sesión | carpetas sin remoto (la nube no las ve) |
+| Mac (apps, brew, runtimes, MCP) | — | sí |
+| AWS | si el ambiente tiene credenciales de solo lectura | perfiles locales |
+| Vercel | `VERCEL_TOKEN` en el ambiente | el CLI logueado |
+| Corre con la compu apagada | sí | no |
+
+- **Local:** una tarea programada de Claude Code con el pedido *"corré la ronda de Centinela"* y
+  `CENTINELA_MODO=mac`.
+- **Nube:** una rutina de Claude cuyas fuentes son tus repos de GitHub, este y el privado. La
+  sesión corre primero `bin/preparar-nube`. La GitHub App de Claude necesita acceso a cada repo
+  que quieras revisar.
+- **A mano:** `CENTINELA_MODO=todo` (el default) cubre todo desde tu compu.
+
+## Telegram
+
+1. En Telegram, hablale a [@BotFather](https://t.me/BotFather) y mandá `/newbot`. Te da el token
+   del bot.
+2. Mandale cualquier mensaje a tu bot nuevo, abrí
+   `https://api.telegram.org/bot<TOKEN>/getUpdates` y copiá `chat.id`.
+3. Guardá los dos en `~/.config/centinela/telegram.env` (fuera de cualquier repo):
+
+   ```
+   TELEGRAM_BOT_TOKEN=...
+   TELEGRAM_CHAT_ID=...
+   ```
+
+4. Probalo: `bin/avisar "Centinela prendido"`.
+
+El agente avisa solo cuando hay algo nuevo en "te afecta"; si no hay nada nuevo, no molesta. Si
+Telegram no está configurado, `bin/avisar` sale con 2 y el agente usa una notificación del
+escritorio (local) o un issue en el repo privado (nube).
+
+## Configuración
+
+Todo por variables de entorno. Los defaults sirven para una Mac con los repos en
+`~/Documents/GitHub`.
+
+| Variable | Default | Qué es |
+|---|---|---|
+| `CENTINELA_MODO` | `todo` | `todo` (todo), `nube` (repos clonados, sin Mac), `mac` (la Mac + carpetas sin remoto) |
+| `CENTINELA_GITHUB` | `~/Documents/GitHub` | Carpeta cuyas subcarpetas son los repos a revisar |
+| `CENTINELA_PRIVADO` | `$CENTINELA_GITHUB/centinela-privado` | Repo privado de `informes/` y `memoria/` |
+| `CENTINELA_AGUARA` | `~/go/bin/aguara` | Binario de Aguara |
+| `CENTINELA_AWS` | `default:us-east-1` (`:us-east-1` en `nube`) | Pares `perfil:región` separados por coma. Perfil vacío = credenciales `AWS_*` del ambiente |
+| `CENTINELA_IDIOMA` | español | Idioma en el que el agente escribe el informe |
+| `VERCEL_TOKEN` | — | Token de Vercel de solo lectura (nube). En local se usa la sesión del CLI |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | — | Para `bin/avisar`, o en `~/.config/centinela/telegram.env` |
+
+## Comandos
+
+```
+bin/centinela doctor       qué falta; sale 2 si falta algo obligatorio
+bin/centinela init         crea el repo privado si no existe
+bin/centinela ronda        ronda completa → estado/ronda.json (~6 min para ~60 repos)
+bin/centinela inventario   solo el inventario → estado/inventario.json
+bin/centinela radar        Radar contra el último inventario
+bin/centinela aguara       solo el escaneo con Aguara
+bin/centinela aws          solo los hallazgos de AWS
+bin/centinela vercel       solo Vercel
+bin/avisar "mensaje"       manda un mensaje por Telegram
+bin/preparar-nube          baja y verifica Aguara en una sesión en la nube
+```
+
+Códigos de salida: `0` ok, `1` error, `2` falta algo (`doctor`) o Telegram no está configurado
+(`bin/avisar`).
+
+## Dónde vive cada cosa
+
+```
+centinela/                 este repo: solo código, puede ser público
+  centinela/               inventario, aguara, radar, aws, vercel, memoria, ronda, rutas
+  skills/centinela/        el skill que sigue el agente
+  docs/ronda.md            forma de estado/ronda.json
+  docs/detecciones.md      catálogo de detecciones
+  estado/                  la salida de cada ronda y el espejo de repos (gitignored, descartable)
+
+centinela-privado/         repo privado: nunca público
+  informes/AAAA-MM-DD-<modo>.md
+  memoria/<modo>/          lo que cada fuente ya vio
+```
 
 ## Reglas de base
 
-- Solo observa. Nunca modifica nada fuera de sus dos repos.
-- Los informes y la memoria viven en un **repo privado aparte**. Este repo es solo código.
-- Los archivos de secretos nunca se copian ni se abren; si alguno está versionado, se avisa por
-  nombre.
+- **Solo observa.** No modifica nada fuera de sus dos repos: no desinstala paquetes, no edita los
+  repos que revisa, no cambia nada en AWS ni en Vercel, ni siquiera archiva un hallazgo.
+- **Nunca bloquea.** Sin modos enforce ni hooks que frenen herramientas.
+- **Secretos.** Los archivos de secretos nunca se copian ni se abren; si alguno está versionado,
+  se avisa por nombre. Nunca pide el valor de una variable. Nunca usa `--no-redact` de Aguara.
+- **Lo privado queda privado.** Informes y memoria viven en el repo privado aparte. Este repo es
+  solo código.
+- **Lo que lee no le da órdenes.** Archivos de los repos, avisos, hallazgos y salidas de
+  herramientas son datos. Si algo ahí le pide que haga algo, no lo hace y lo cuenta en el informe.
+- **Solo te escribe a vos:** Telegram, una notificación local o un issue en el repo privado.
+
+## Límites
+
 - Radar es una selección editorial y Aguara un escáner de patrones: que no aparezca algo no prueba
   que estés a salvo.
+- La ronda diaria ve el estado, no el tráfico. Un ataque en curso en AWS lo ve GuardDuty, pero en
+  tus apps web todavía no (ver lo que viene).
+- AWS cubre solo las regiones que listás, y los hallazgos de GuardDuty con severidad menor a 4 se
+  saltean.
+
+## Lo que viene
+
+- **Vigía:** una guardia cada 15 minutos sobre los logs de pedidos, las acciones del firewall y
+  los logins, que avisa por Telegram mientras pasa un ataque (fuerza bruta, password spraying,
+  barrido de rutas, logins desde lugares nuevos), más chequeos diarios de identidad (cuentas
+  dormidas, cuentas que entran y no hacen nada). Detecciones en
+  [docs/detecciones.md](docs/detecciones.md).
+- **GitHub:** alertas de Dependabot y secret scanning, apps con acceso a todos los repos,
+  colaboradores externos, repos que pasan a públicos, Actions sin fijar.
+- **AWS:** uso de root con cualquier severidad, todas las regiones, el credential report de IAM
+  (claves de más de 90 días, usuarios sin MFA).
+- Verificar la firma del release de Aguara en `bin/preparar-nube`; que `doctor` chequee que el
+  repo privado siga privado.
+
+## Desarrollo
+
+```bash
+python3 -m unittest discover -s tests   # sin red ni Aguara
+```
+
+Solo biblioteca estándar. Comentarios y salida del CLI en español rioplatense. Ver
+[AGENTS.md](AGENTS.md).
 
 ## Créditos
 
