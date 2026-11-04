@@ -75,6 +75,15 @@ any GuardDuty finding with severity 7+ still open: when it happened, from which 
 role), and what the owner should confirm ("was this you?"). If an account fails with a credentials
 error, say so (for example "session expired: run `aws login --profile <name>`").
 
+## 4b. Vercel (`ronda.vercel`)
+
+Read only; variable values are never fetched. Report `nuevo`/`actualizado` findings above
+`info`. Always at the top, even if not new: a **pending access request** to a team (ask "do you
+know this person?") and a **new team member**. An `env pull` by someone the owner didn't expect
+is worth one line. `baja` findings (stale projects, non-sensitive secrets) go in one grouped line,
+not one per project. If a project's previews are unprotected AND it has production secrets in
+`preview`, say so explicitly: anyone with a preview URL reaches production data.
+
 ## 5. Write the report
 
 `$CENTINELA_PRIVADO/informes/YYYY-MM-DD-<modo>.md`:

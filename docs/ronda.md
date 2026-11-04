@@ -75,6 +75,30 @@ code. Everything is regenerated each round; what must persist lives in
 }
 ```
 
+`vercel` has the same finding shape as `aws`:
+
+```jsonc
+"vercel": {
+  "primera_corrida": false,
+  "dominios": ["app.example.com", …],          // custom production domains seen
+  "errores": { "team:paso": "message" },
+  "hallazgos": [
+    {
+      "id": "vercel:<team>:<project>:<check>", "servicio": "Vercel",
+      "severidad": "alta" | "media" | "baja" | "info",   // info = context (confirmed members)
+      "titulo": "…", "recurso": "<project or team>",
+      "detalle": { … },                          // variable NAMES, counts, roles; never values
+      "estado": "nuevo" | "actualizado" | "visto" | "línea de base"
+    }
+  ]
+}
+```
+
+Checks: pending team access requests and new members, secret-looking variables with a public
+prefix, `plain` secrets, production secrets also in `development`, production secrets not
+`sensitive`, unprotected previews and disabled firewall on projects with a custom domain, stale
+published projects, and audit events (`env pull`, variables added, member changes, blocked deploys).
+
 `Hallazgo` (Aguara):
 
 ```jsonc

@@ -9,6 +9,7 @@ uso: bin/centinela <comando>
   radar        bajar Radar y cruzar con el último inventario
   aguara       solo el escaneo de repos con Aguara
   aws          solo los hallazgos de GuardDuty, Security Hub e Inspector
+  vercel       solo Vercel: equipo, variables, previews, firewall y auditoría
 
 Configuración por variables de entorno: ver AGENTS.md. Códigos de salida: 0 ok,
 1 error, 2 falta algo (doctor).
@@ -104,6 +105,9 @@ def main(args):
     elif comando == "aws":
         from . import aws
         print(aws.resumen(aws.correr()))
+    elif comando == "vercel":
+        from . import vercel
+        print(vercel.resumen(vercel.correr()))
     elif comando == "ronda":
         from . import ronda
         print(ronda.correr(_inventario()))

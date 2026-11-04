@@ -7,13 +7,14 @@ que el agente de la tarea programada lo lea de un solo archivo.
 import datetime
 import json
 
-from . import aguara, aws, radar, rutas
+from . import aguara, aws, radar, rutas, vercel
 
 
 def correr(inv):
     ag = aguara.correr()
     rd = radar.correr(inv)
     nube_aws = aws.correr()
+    vc = vercel.correr()
 
     def importa(h):
         return h["capa"] in ("agéntica", "credencial") and h["severidad"] in ("crítica", "alta")
@@ -33,6 +34,8 @@ def correr(inv):
             "por_repo": {r: {"riesgo": x["riesgo"], "hallazgos": len(x["hallazgos"])} for r, x in ag["repos"].items()},
         },
         "aws": nube_aws,
+        "vercel": vc,
     }
     (rutas.ESTADO / "ronda.json").write_text(json.dumps(ronda, ensure_ascii=False, indent=1))
-    return "\n".join([radar.resumen(rd), aguara.resumen(ag), aws.resumen(nube_aws), f"-> {rutas.ESTADO / 'ronda.json'}"])
+    return "\n".join([radar.resumen(rd), aguara.resumen(ag), aws.resumen(nube_aws), vercel.resumen(vc),
+                      f"-> {rutas.ESTADO / 'ronda.json'}"])

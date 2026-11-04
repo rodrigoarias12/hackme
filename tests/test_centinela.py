@@ -2,6 +2,7 @@
 
 python3 -m unittest discover -s tests
 """
+import json
 import os
 import subprocess
 import sys
@@ -133,6 +134,39 @@ class MemoriaAguara(unittest.TestCase):
                 self.assertFalse(tercera["repos"]["a"]["hallazgos"][0]["nuevo"])
             finally:
                 rutas.GITHUB, rutas.ESPEJO, rutas.MEMORIA, rutas.ESTADO, rutas.MODO = antes
+
+
+class VariablesDeVercel(unittest.TestCase):
+    """Solo nombre, tipo y ambientes: qué se marca y qué es público por diseño."""
+
+    def hallazgos(self, envs):
+        from unittest import mock
+        from centinela import vercel
+        salida = []
+        with mock.patch.object(vercel, "_api", return_value={"envs": envs}):
+            vercel._variables("team", "equipo", {"id": "p", "name": "app"}, salida)
+        return {h["id"].rsplit(":", 1)[1]: h["detalle"] for h in salida}
+
+    def test_publicas_por_diseno_no_se_marcan(self):
+        envs = [{"key": k, "type": "encrypted", "target": ["production"]} for k in
+                ("NEXT_PUBLIC_VAPID_PUBLIC_KEY", "NEXT_PUBLIC_HCAPTCHA_SITE_KEY", "NEXT_PUBLIC_SENTRY_DSN",
+                 "NEXT_PUBLIC_SUPABASE_ANON_KEY")]
+        self.assertNotIn("publicas", self.hallazgos(envs))
+
+    def test_secreto_con_prefijo_publico(self):
+        envs = [{"key": "NEXT_PUBLIC_STRIPE_SECRET_KEY", "type": "encrypted", "target": ["production"]}]
+        self.assertEqual(self.hallazgos(envs)["publicas"], {"variables": ["NEXT_PUBLIC_STRIPE_SECRET_KEY"]})
+
+    def test_prod_y_development_compartidos(self):
+        envs = [{"key": "DATABASE_URL", "type": "sensitive", "target": ["development", "preview", "production"]},
+                {"key": "SESSION_SECRET", "type": "encrypted", "target": ["production"]}]
+        h = self.hallazgos(envs)
+        self.assertEqual(h["compartidas"], {"variables": ["DATABASE_URL"]})
+        self.assertEqual(h["sensitive"], {"cantidad": 1})  # SESSION_SECRET no es sensitive
+
+    def test_el_valor_nunca_se_usa(self):
+        envs = [{"key": "API_KEY", "type": "plain", "target": ["production"], "value": "no-deberia-aparecer"}]
+        self.assertNotIn("no-deberia-aparecer", json.dumps(self.hallazgos(envs)))
 
 
 class Secretos(unittest.TestCase):
