@@ -1,6 +1,7 @@
 # hackme
 
 [English](README.md)
+<p align="center"><img src="docs/img/banner-es.svg" alt="hackme: un agente de seguridad que solo mira y avisa" width="100%"></p>
 
 Un agente de seguridad que mira **todo lo que corrés**: tus repos, tu Mac, tu cuenta de AWS y tus
 equipos de Vercel. Todos los días cruza los avisos de [Oktsec Radar](https://www.oktsec.com/radar)
@@ -28,6 +29,8 @@ para una persona.
 - [Lo que viene](#lo-que-viene)
 
 ## Cómo funciona
+
+<p align="center"><img src="docs/img/flujo-es.svg" alt="Cómo funciona hackme: la ronda diaria y el vigía de 15 minutos leen detrás de una frontera de solo lectura y avisan por Telegram" width="100%"></p>
 
 ```
 bin/hackme ronda
@@ -69,10 +72,14 @@ primera corrida es la línea de base y después solo aparece lo que cambió.
 | **AWS** | Hallazgos de GuardDuty (severidad 4+), Security Hub HIGH/CRITICAL, Inspector HIGH/CRITICAL | AWS CLI con un perfil de solo lectura, uno o más pares `perfil:región` |
 | **Vercel** | Pedidos de acceso pendientes y miembros nuevos; variables con nombre de secreto y prefijo público (llegan al navegador); secretos `plain`; secretos de producción también en `development` (cualquiera con `vercel env pull` se los lleva a su compu); secretos de producción no `sensitive`; previews sin protección y firewall apagado en proyectos con dominio propio; proyectos viejos publicados; eventos de auditoría (`env pull`, variables cambiadas, miembros, tokens, protección, firewall) | API de Vercel con la sesión del CLI (`vercel api`) o `VERCEL_TOKEN`. De cada variable solo `key`, `type` y `target`, nunca el valor |
 
+<p align="center"><img src="docs/img/detecciones-es.svg" alt="81 detecciones por familia: 37 funcionando, 6 a medias, 38 por armar" width="100%"></p>
+
 La lista completa de detecciones, hechas y por hacer, basada en OWASP, MITRE ATT&CK y los
 benchmarks de CIS, está en [docs/detecciones.md](docs/detecciones.md).
 
 ## Vigía: la guardia de 15 minutos
+
+<p align="center"><img src="docs/img/ataque-es.svg" alt="Un escaneo a escala: una IP cruza el umbral a las 02:23 y el vigía avisa a las 02:30" width="100%"></p>
 
 ```
 bin/hackme vigia               cada 15 min (launchd en la Mac)
@@ -237,6 +244,8 @@ hackme-privado/         repo privado: nunca público
   saltean.
 
 ## Lo que viene
+
+<p align="center"><img src="docs/img/circuito-es.svg" alt="El circuito de desarrollo, de la sesión de código a producción, y qué lee hackme de cada etapa" width="100%"></p>
 
 - **Vigía:** que corra siempre (un job programado de CI en el repo privado); señales de sesión
   robada (A7), sondeo de permisos (A12), scraping (A13).

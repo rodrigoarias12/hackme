@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1112 502" width="1112" height="502" role="img" aria-label="How hackme works: two watches behind a read-only boundary">
+<title>How hackme works: two watches behind a read-only boundary</title>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #0D2020; }
+.t-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.t-muted { fill: #4A6560; }
+.t-accent { fill: #18723E; }
+.t-warn { fill: #A0680A; }
+.t-title { font-weight: 700; }
+.fondo { fill: #FFFFFF; }
+.caja { fill: #F3F8F5; stroke: #C3D8CE; stroke-width: 1; }
+.caja-fuerte { fill: #F3F8F5; stroke: #3FCB67; stroke-width: 2; }
+.caja-sal { fill: #FFFFFF; stroke: #C3D8CE; stroke-width: 1; }
+.linea { stroke: #7E9A92; stroke-width: 1.5; fill: none; }
+.linea-acc { stroke: #3FCB67; stroke-width: 2.25; fill: none; }
+.frontera { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+.grilla { stroke: #E3EEE8; stroke-width: 1; }
+.eje { stroke: #C3D8CE; stroke-width: 1; }
+.umbral { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 6 4; }
+.pasada { stroke: #9DB4AC; stroke-width: 1; stroke-dasharray: 2 4; }
+.area { fill: rgba(63, 203, 103, 0.18); stroke: none; }
+.curva { stroke: #2DB457; stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+.punto-acc { fill: #3FCB67; }
+.punto-alerta { fill: #C8402E; }
+.flecha-p { fill: #7E9A92; }
+.flecha-a { fill: #3FCB67; }
+.n-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 2; }
+.n-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 2.5; }
+.n-falta { fill: #FFFFFF; stroke: #9DB4AC; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.barra-h { fill: #0D2020; stroke: none; }
+.barra-h-t { fill: #FFFFFF; }
+.barra-h-acc { fill: #6BE386; }
+.c-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 1.5; }
+.c-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 1.75; }
+.c-falta { fill: #FFFFFF; stroke: #B5C9C1; stroke-width: 1.25; stroke-dasharray: 3 2.5; }
+.c-t-ok { fill: #0D2020; }
+.c-t-parcial { fill: #A0680A; }
+.c-t-falta { fill: #7E9A92; }
+.marca { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; fill: #0D2020; }
+.anillo { fill: none; stroke: #C3D8CE; stroke-width: 1.5; }
+.barrido { fill: rgba(107, 227, 134, 0.28); }
+.blip { fill: #3FCB67; }
+.blip-halo { fill: none; stroke: rgba(63, 203, 103, 0.45); stroke-width: 1.5; }
+</style>
+<rect class="fondo" x="0" y="0" width="1112" height="502"/>
+<g transform="translate(16 16)">
+        <defs>
+          <marker id="pf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="flecha-p" d="M0 0L10 5L0 10z"/></marker>
+          <marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="flecha-a" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+
+        
+        <text x="20" y="34" class="t-mono t-muted" font-size="11" letter-spacing="1.2">THE WORLD</text>
+        <rect class="caja" x="20" y="46" width="250" height="40" rx="9"/>
+        <text x="36" y="71" font-size="14" font-weight="600">Oktsec Radar</text>
+        <text x="256" y="71" font-size="11" class="t-muted" text-anchor="end">curated advisories</text>
+        <rect class="caja" x="20" y="94" width="250" height="40" rx="9"/>
+        <text x="36" y="119" font-size="14" font-weight="600">Aguara</text>
+        <text x="256" y="119" font-size="11" class="t-muted" text-anchor="end">38k bad packages</text>
+
+        <text x="20" y="172" class="t-mono t-muted" font-size="11" letter-spacing="1.2">MINE</text>
+        <rect class="caja" x="20" y="184" width="250" height="40" rx="9"/>
+        <text x="36" y="209" font-size="14" font-weight="600">64 repos</text>
+        <text x="256" y="209" font-size="11" class="t-muted" text-anchor="end">code, skills, MCPs</text>
+        <rect class="caja" x="20" y="232" width="250" height="40" rx="9"/>
+        <text x="36" y="257" font-size="14" font-weight="600">The Mac</text>
+        <text x="256" y="257" font-size="11" class="t-muted" text-anchor="end">apps, brew, runtimes</text>
+        <rect class="caja" x="20" y="280" width="250" height="40" rx="9"/>
+        <text x="36" y="305" font-size="14" font-weight="600">Vercel</text>
+        <text x="256" y="305" font-size="11" class="t-muted" text-anchor="end">team, env vars</text>
+        <rect class="caja" x="20" y="328" width="250" height="40" rx="9"/>
+        <text x="36" y="353" font-size="14" font-weight="600">AWS</text>
+        <text x="256" y="353" font-size="11" class="t-muted" text-anchor="end">CloudTrail, GuardDuty</text>
+        <rect class="caja" x="20" y="376" width="250" height="40" rx="9"/>
+        <text x="36" y="401" font-size="14" font-weight="600">My apps</text>
+        <text x="256" y="401" font-size="11" class="t-muted" text-anchor="end">requests, logins</text>
+
+        
+        <g class="linea">
+          <line x1="270" y1="66" x2="300" y2="66"/><line x1="270" y1="114" x2="300" y2="114"/>
+          <line x1="270" y1="204" x2="300" y2="204"/><line x1="270" y1="252" x2="300" y2="252"/>
+          <line x1="270" y1="300" x2="300" y2="300"/><line x1="270" y1="342" x2="300" y2="342"/>
+          <line x1="270" y1="390" x2="300" y2="390"/>
+          <line x1="300" y1="66" x2="300" y2="390"/>
+        </g>
+        <line class="linea" x1="300" y1="140" x2="428" y2="140" marker-end="url(#pf)"/>
+        <text x="312" y="132" font-size="11" class="t-muted">once a day</text>
+
+        
+        <path class="linea-acc" d="M270 356 H340 V362 H420"/>
+        <path class="linea-acc" d="M270 404 H340 V386 H420"/>
+        <polygon class="flecha-a" points="420,357 430,362 420,367"/>
+        <polygon class="flecha-a" points="420,381 430,386 420,391"/>
+        <text x="384" y="436" font-size="11" class="t-accent">every 15 min</text>
+
+        
+        <line class="frontera" x1="372" y1="40" x2="372" y2="440"/>
+        <text x="372" y="458" font-size="11" class="t-mono t-warn" text-anchor="middle">READ-ONLY · never writes across this line</text>
+
+        
+        <rect class="caja-fuerte" x="430" y="70" width="290" height="150" rx="14"/>
+        <text x="450" y="102" font-size="18" class="t-title">Daily round</text>
+        <text x="700" y="102" font-size="12" class="t-mono t-accent" text-anchor="end">8:30</text>
+        <text x="450" y="124" font-size="12" class="t-muted">Claude judges every match</text>
+        <g font-size="11" class="t-mono">
+          <rect class="caja-sal" x="450" y="142" width="80" height="26" rx="6"/><text x="490" y="159" text-anchor="middle">inventory</text>
+          <rect class="caja-sal" x="538" y="142" width="80" height="26" rx="6"/><text x="578" y="159" text-anchor="middle">Aguara</text>
+          <rect class="caja-sal" x="626" y="142" width="74" height="26" rx="6"/><text x="663" y="159" text-anchor="middle">Radar</text>
+          <rect class="caja-sal" x="450" y="176" width="80" height="26" rx="6"/><text x="490" y="193" text-anchor="middle">AWS</text>
+          <rect class="caja-sal" x="538" y="176" width="80" height="26" rx="6"/><text x="578" y="193" text-anchor="middle">Vercel</text>
+          <rect class="caja-sal" x="626" y="176" width="74" height="26" rx="6"/><text x="663" y="193" text-anchor="middle">judgment</text>
+        </g>
+
+        
+        <rect class="caja" x="485" y="246" width="180" height="36" rx="9"/>
+        <text x="575" y="269" font-size="12" text-anchor="middle">memory: what it already saw</text>
+        <line class="linea" x1="575" y1="222" x2="575" y2="244" marker-start="url(#pf)" marker-end="url(#pf)"/>
+        <line class="linea" x1="575" y1="284" x2="575" y2="318" marker-start="url(#pf)" marker-end="url(#pf)"/>
+
+        
+        <rect class="caja-fuerte" x="430" y="320" width="290" height="104" rx="14"/>
+        <text x="450" y="352" font-size="18" class="t-title">Vigía</text>
+        <text x="700" y="352" font-size="12" class="t-mono t-accent" text-anchor="end">every 15 min</text>
+        <text x="450" y="374" font-size="12" class="t-muted">No AI: counts and compares to thresholds</text>
+        <text x="450" y="400" font-size="11" class="t-mono t-muted">1 alert per thing per day · max 25</text>
+
+        
+        <text x="830" y="34" class="t-mono t-muted" font-size="11" letter-spacing="1.2">YOU GET</text>
+        <rect class="caja" x="830" y="96" width="230" height="52" rx="10"/>
+        <text x="848" y="118" font-size="14" font-weight="600">Daily report</text>
+        <text x="848" y="137" font-size="11" class="t-muted">private repo: affects you / check / no</text>
+        <rect class="caja-fuerte" x="830" y="246" width="230" height="52" rx="10"/>
+        <text x="848" y="268" font-size="14" font-weight="600">Telegram</text>
+        <text x="848" y="287" font-size="11" class="t-muted">only what's new</text>
+
+        <path class="linea" d="M720 118 H828" marker-end="url(#pf)"/>
+        <text x="738" y="110" font-size="11" class="t-muted">writes</text>
+        <path class="linea" d="M720 190 H770 V262 H828" marker-end="url(#pf)"/>
+        <text x="778" y="230" font-size="11" class="t-muted">if new</text>
+        <path class="linea-acc" d="M720 372 H770 V282 H822"/>
+        <polygon class="flecha-a" points="820,277 830,282 820,287"/>
+        <text x="778" y="330" font-size="11" class="t-accent">while it happens</text>
+      </g>
+</svg>

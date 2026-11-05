@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1032 262" width="1032" height="262" role="img" aria-label="El circuito de desarrollo y dónde se engancha hackme">
+<title>El circuito de desarrollo y dónde se engancha hackme</title>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #0D2020; }
+.t-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.t-muted { fill: #4A6560; }
+.t-accent { fill: #18723E; }
+.t-warn { fill: #A0680A; }
+.t-title { font-weight: 700; }
+.fondo { fill: #FFFFFF; }
+.caja { fill: #F3F8F5; stroke: #C3D8CE; stroke-width: 1; }
+.caja-fuerte { fill: #F3F8F5; stroke: #3FCB67; stroke-width: 2; }
+.caja-sal { fill: #FFFFFF; stroke: #C3D8CE; stroke-width: 1; }
+.linea { stroke: #7E9A92; stroke-width: 1.5; fill: none; }
+.linea-acc { stroke: #3FCB67; stroke-width: 2.25; fill: none; }
+.frontera { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+.grilla { stroke: #E3EEE8; stroke-width: 1; }
+.eje { stroke: #C3D8CE; stroke-width: 1; }
+.umbral { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 6 4; }
+.pasada { stroke: #9DB4AC; stroke-width: 1; stroke-dasharray: 2 4; }
+.area { fill: rgba(63, 203, 103, 0.18); stroke: none; }
+.curva { stroke: #2DB457; stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+.punto-acc { fill: #3FCB67; }
+.punto-alerta { fill: #C8402E; }
+.flecha-p { fill: #7E9A92; }
+.flecha-a { fill: #3FCB67; }
+.n-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 2; }
+.n-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 2.5; }
+.n-falta { fill: #FFFFFF; stroke: #9DB4AC; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.barra-h { fill: #0D2020; stroke: none; }
+.barra-h-t { fill: #FFFFFF; }
+.barra-h-acc { fill: #6BE386; }
+.c-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 1.5; }
+.c-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 1.75; }
+.c-falta { fill: #FFFFFF; stroke: #B5C9C1; stroke-width: 1.25; stroke-dasharray: 3 2.5; }
+.c-t-ok { fill: #0D2020; }
+.c-t-parcial { fill: #A0680A; }
+.c-t-falta { fill: #7E9A92; }
+.marca { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; fill: #0D2020; }
+.anillo { fill: none; stroke: #C3D8CE; stroke-width: 1.5; }
+.barrido { fill: rgba(107, 227, 134, 0.28); }
+.blip { fill: #3FCB67; }
+.blip-halo { fill: none; stroke: rgba(63, 203, 103, 0.45); stroke-width: 1.5; }
+</style>
+<rect class="fondo" x="0" y="0" width="1032" height="262"/>
+<g transform="translate(16 16)">
+        <line class="eje" x1="70" y1="62" x2="928" y2="62"/>
+        <g class="pasada">
+          <line x1="70" y1="154" x2="70" y2="176"/><line x1="213" y1="154" x2="213" y2="176"/><line x1="356" y1="154" x2="356" y2="176"/>
+          <line x1="499" y1="154" x2="499" y2="176"/><line x1="642" y1="154" x2="642" y2="176"/><line x1="785" y1="154" x2="785" y2="176"/>
+          <line x1="928" y1="154" x2="928" y2="176"/>
+        </g>
+        <circle class="n-falta" cx="70" cy="62" r="20"/><circle class="n-falta" cx="213" cy="62" r="20"/>
+        <circle class="n-parcial" cx="356" cy="62" r="20"/><circle class="n-parcial" cx="499" cy="62" r="20"/>
+        <circle class="n-ok" cx="642" cy="62" r="20"/><circle class="n-parcial" cx="785" cy="62" r="20"/>
+        <circle class="n-ok" cx="928" cy="62" r="20"/>
+        <g font-size="13" font-weight="600" text-anchor="middle">
+          <text x="70" y="22">Sesión de código</text><text x="213" y="22">Antes del PR</text><text x="356" y="22">PR en GitHub</text>
+          <text x="499" y="22">Build y deploy</text><text x="642" y="22">Producción</text><text x="785" y="22">Alerta al momento</text>
+          <text x="928" y="22">Ronda diaria</text>
+        </g>
+        <g font-size="11" class="t-mono t-muted" text-anchor="middle">
+          <text x="70" y="108">mcp-aguara</text><text x="70" y="123">oktsec</text>
+          <text x="213" y="108">security-review</text>
+          <text x="356" y="108">Actions</text><text x="356" y="123">Aguara, gitleaks</text>
+          <text x="499" y="108">Vercel</text><text x="499" y="123">Inspector</text>
+          <text x="642" y="108">GuardDuty</text><text x="642" y="123">Security Hub</text>
+          <text x="785" y="108">vigía</text><text x="785" y="123">CloudTrail</text>
+          <text x="928" y="108">Radar</text><text x="928" y="123">Aguara</text>
+        </g>
+        <g font-size="10.5" class="t-mono" text-anchor="middle">
+          <text x="70" y="146" class="t-muted">POR ARMAR</text><text x="213" y="146" class="t-muted">POR ARMAR</text>
+          <text x="356" y="146" class="t-warn">A MEDIAS</text><text x="499" y="146" class="t-warn">A MEDIAS</text>
+          <text x="642" y="146" class="t-accent">ANDANDO</text><text x="785" y="146" class="t-warn">A MEDIAS</text>
+          <text x="928" y="146" class="t-accent">ANDANDO</text>
+        </g>
+        <rect class="barra-h" x="30" y="178" width="940" height="38" rx="10"/>
+        <text x="50" y="202" font-size="14" class="t-title barra-h-acc t-mono">hackme</text>
+        <text x="122" y="202" font-size="12" class="barra-h-t">lee lo que deja cada etapa y lo cruza con lo que pasa en el mundo</text>
+      </g>
+</svg>

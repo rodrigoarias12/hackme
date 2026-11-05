@@ -1,0 +1,538 @@
+<title>hackme</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Layout: héroe con radar a la derecha; después cuatro figuras grandes, cada una una idea (cómo fluye, un ataque a escala, qué vigila, dónde se engancha), y las reglas al final. Paleta Paydece: petróleo + menta. */
+:root {
+  --bg: #0D2020;
+  --surface: #133030;
+  --surface-2: #183A3A;
+  --line: #2A4E4E;
+  --grid: #1F4040;
+  --fg: #E8F3EF;
+  --muted: #94B3AA;
+  --accent: #6BE386;
+  --accent-ink: #6BE386;
+  --accent-soft: rgba(107, 227, 134, 0.16);
+  --on-accent: #0D2020;
+  --warn: #F2C46B;
+  --alert: #FF8A7A;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F1F6F3; --surface: #FFFFFF; --surface-2: #E4EFE9; --line: #C3D8CE; --grid: #DCE8E2;
+    --fg: #0D2020; --muted: #4A6560; --accent: #3FCB67; --accent-ink: #18723E;
+    --accent-soft: rgba(63, 203, 103, 0.16); --on-accent: #0D2020; --warn: #B07510; --alert: #B23A2A;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F1F6F3; --surface: #FFFFFF; --surface-2: #E4EFE9; --line: #C3D8CE; --grid: #DCE8E2;
+  --fg: #0D2020; --muted: #4A6560; --accent: #3FCB67; --accent-ink: #18723E;
+  --accent-soft: rgba(63, 203, 103, 0.16); --on-accent: #0D2020; --warn: #B07510; --alert: #B23A2A;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 36px 56px;
+  display: grid; gap: 88px;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); }
+.nota { color: var(--muted); max-width: 66ch; }
+a { color: var(--accent-ink); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* Héroe */
+.hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 32px; align-items: center; }
+.hero-txt { display: grid; gap: 18px; min-width: 0; }
+.marca {
+  font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.04em; line-height: 0.95;
+  font-size: clamp(3.4rem, 10vw, 7rem);
+}
+.marca .cursor { display: inline-block; width: 0.55em; height: 0.82em; background: var(--accent); vertical-align: -0.06em; margin-left: 0.06em; animation: parpadeo 1.1s steps(1) infinite; }
+@keyframes parpadeo { 50% { opacity: 0; } }
+.lede { font-size: 1.25rem; line-height: 1.5; max-width: 34ch; }
+.lede em { font-style: normal; color: var(--accent-ink); }
+.cifras { display: grid; grid-template-columns: repeat(4, minmax(0, auto)); gap: 4px 28px; justify-content: start; }
+.cifra b { display: block; font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cifra span { color: var(--muted); font-size: 0.8125rem; }
+.radar { width: 100%; max-width: 420px; aspect-ratio: 1; justify-self: center; display: block; }
+
+/* Figuras */
+.fig { display: grid; gap: 18px; margin: 0; }
+.fig-head { display: grid; gap: 8px; }
+.fig h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); font-weight: 800; letter-spacing: -0.01em; }
+.lienzo { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); padding: 18px; }
+.lienzo svg { display: block; width: 100%; height: auto; }
+.ancho svg { min-width: 760px; }
+figcaption { color: var(--muted); font-size: 0.875rem; max-width: 72ch; }
+
+/* Estilos de los SVG (heredan los tokens) */
+svg text { font-family: var(--font-body); fill: var(--fg); }
+svg .t-mono { font-family: var(--font-mono); }
+svg .t-muted { fill: var(--muted); }
+svg .t-accent { fill: var(--accent-ink); }
+svg .t-warn { fill: var(--warn); }
+svg .t-title { font-family: var(--font-display); font-weight: 700; }
+svg .caja { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; }
+svg .caja-fuerte { fill: var(--surface-2); stroke: var(--accent); stroke-width: 2; }
+svg .caja-sal { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+svg .linea { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .linea-acc { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg .frontera { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+svg .grilla { stroke: var(--grid); stroke-width: 1; }
+svg .eje { stroke: var(--line); stroke-width: 1; }
+svg .umbral { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 6 4; }
+svg .pasada { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; }
+svg .area { fill: var(--accent-soft); stroke: none; }
+svg .curva { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+svg .punto-acc { fill: var(--accent); }
+svg .punto-alerta { fill: var(--alert); }
+svg .flecha-p { fill: var(--muted); }
+svg .flecha-a { fill: var(--accent); }
+svg .n-ok { fill: var(--accent); stroke: var(--accent); stroke-width: 2; }
+svg .n-parcial { fill: var(--bg); stroke: var(--warn); stroke-width: 2.5; }
+svg .n-falta { fill: var(--bg); stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+svg .barra-h { fill: var(--surface-2); stroke: var(--accent); stroke-width: 1.5; }
+@media (prefers-reduced-motion: no-preference) {
+  svg .fluye { stroke-dasharray: 6 6; animation: fluir 1.2s linear infinite; }
+  @keyframes fluir { to { stroke-dashoffset: -12; } }
+}
+@media (prefers-reduced-motion: reduce) { .marca .cursor { animation: none; } }
+
+/* Ataque */
+.ataque { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+.ataque .lienzo { min-width: 0; }
+.mensaje { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.mensaje-top { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; font-family: var(--font-mono); font-weight: 700; font-size: 0.875rem; }
+.mensaje-top b { font-size: 0.9375rem; display: block; }
+.mensaje-top span { color: var(--muted); font-size: 0.75rem; font-family: var(--font-mono); }
+.burbuja { background: var(--surface-2); border-radius: 4px 14px 14px 14px; padding: 12px 14px; display: grid; gap: 8px; font-size: 0.9375rem; line-height: 1.45; overflow-wrap: anywhere; }
+.burbuja .tit { font-weight: 600; }
+.burbuja .tag { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.contra { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; font-size: 0.875rem; padding-top: 4px; border-top: 1px solid var(--line); }
+.contra b { font-family: var(--font-mono); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+.contra .sin { color: var(--alert); }
+.contra .con { color: var(--accent-ink); }
+.ejemplo { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); letter-spacing: 0.04em; }
+
+/* Mapa de detecciones */
+.waffle { display: grid; gap: 14px; }
+.fila { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 16px; align-items: center; }
+.fila-nom { display: grid; gap: 0; }
+.fila-nom b { font-family: var(--font-display); font-size: 1rem; }
+.fila-nom span { color: var(--muted); font-size: 0.8125rem; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.celdas { display: flex; flex-wrap: wrap; gap: 5px; }
+.celda {
+  width: 34px; height: 34px; border-radius: 7px; display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 0.625rem; font-weight: 500; border: 1.5px solid var(--line); color: var(--muted);
+}
+.celda.ok { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.celda.parcial { background: transparent; border-color: var(--warn); color: var(--warn); }
+.celda.falta { border-style: dashed; }
+.ley { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 0.875rem; align-items: center; }
+.ley i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1.5px solid var(--line); }
+.ley i.ok { background: var(--accent); border-color: var(--accent); }
+.ley i.parcial { border-color: var(--warn); }
+.ley i.falta { border-style: dashed; }
+.ley b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.fuentes { display: flex; flex-wrap: wrap; gap: 6px; }
+.fuente { font-family: var(--font-mono); font-size: 0.75rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+
+/* Reglas */
+.reglas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.regla { padding: 16px 18px 16px 0; display: grid; gap: 4px; align-content: start; border-bottom: 1px solid var(--line); }
+.regla b { font-family: var(--font-display); font-size: 1.0625rem; }
+.regla span { color: var(--muted); font-size: 0.875rem; line-height: 1.45; }
+
+footer { color: var(--muted); font-size: 0.875rem; display: grid; gap: 6px; }
+footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .radar { max-width: 320px; }
+  .ataque { grid-template-columns: minmax(0, 1fr); }
+  .reglas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .cifras { grid-template-columns: repeat(2, minmax(0, auto)); }
+  .fila { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .celda { width: 30px; height: 30px; }
+  .reglas { grid-template-columns: minmax(0, 1fr); }
+  .lienzo { padding: 12px; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-txt">
+      <span class="eyebrow">Build in public · agente de seguridad open source</span>
+      <h1 class="marca">hackme<span class="cursor" aria-hidden="true"></span></h1>
+      <p class="lede">Un agente que vigila todo lo que corro. <em>Cada 15 minutos</em> mira si me están atacando; <em>una vez por día</em> cruza lo que pasa en el mundo con mis proyectos. Solo mira y avisa: no bloquea nada.</p>
+      <div class="cifras">
+        <div class="cifra"><b>64</b><span>proyectos</span></div>
+        <div class="cifra"><b>22.664</b><span>dependencias</span></div>
+        <div class="cifra"><b>81</b><span>detecciones</span></div>
+        <div class="cifra"><b>15 min</b><span>entre pasadas</span></div>
+      </div>
+    </div>
+    <canvas class="radar" id="radar" width="840" height="840" role="img" aria-label="Radar que barre las seis cosas que vigila hackme: repos, Mac, AWS, Vercel, apps y los avisos de Oktsec Radar"></canvas>
+  </header>
+
+  <figure class="fig" aria-labelledby="f1">
+    <div class="fig-head">
+      <span class="eyebrow">Cómo funciona</span>
+      <h2 id="f1">Dos guardias, una sola frontera</h2>
+      <p class="nota">El vigía cuenta y compara cada 15 minutos, sin IA. La ronda de cada mañana junta todo y Claude decide qué te toca. Las dos leen del mismo lado de la línea amarilla: con usuarios de solo lectura.</p>
+    </div>
+    <div class="lienzo ancho">
+      <svg viewBox="0 0 1080 470" role="img" aria-label="Las fuentes se leen con usuarios de solo lectura. La ronda diaria lee todo una vez por día y escribe un informe privado; el vigía lee AWS y las apps cada 15 minutos; los dos avisan por Telegram solo lo nuevo, y comparten una memoria de lo que ya vieron.">
+        <defs>
+          <marker id="pf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="flecha-p" d="M0 0L10 5L0 10z"/></marker>
+          <marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="flecha-a" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+
+        <!-- Fuentes -->
+        <text x="20" y="34" class="t-mono t-muted" font-size="11" letter-spacing="1.2">EL MUNDO</text>
+        <rect class="caja" x="20" y="46" width="250" height="40" rx="9"/>
+        <text x="36" y="71" font-size="14" font-weight="600">Oktsec Radar</text>
+        <text x="256" y="71" font-size="11" class="t-muted" text-anchor="end">avisos curados</text>
+        <rect class="caja" x="20" y="94" width="250" height="40" rx="9"/>
+        <text x="36" y="119" font-size="14" font-weight="600">Aguara</text>
+        <text x="256" y="119" font-size="11" class="t-muted" text-anchor="end">38 mil paquetes malos</text>
+
+        <text x="20" y="172" class="t-mono t-muted" font-size="11" letter-spacing="1.2">LO MÍO</text>
+        <rect class="caja" x="20" y="184" width="250" height="40" rx="9"/>
+        <text x="36" y="209" font-size="14" font-weight="600">64 repos</text>
+        <text x="256" y="209" font-size="11" class="t-muted" text-anchor="end">código, skills, MCPs</text>
+        <rect class="caja" x="20" y="232" width="250" height="40" rx="9"/>
+        <text x="36" y="257" font-size="14" font-weight="600">La Mac</text>
+        <text x="256" y="257" font-size="11" class="t-muted" text-anchor="end">apps, brew, runtimes</text>
+        <rect class="caja" x="20" y="280" width="250" height="40" rx="9"/>
+        <text x="36" y="305" font-size="14" font-weight="600">Vercel</text>
+        <text x="256" y="305" font-size="11" class="t-muted" text-anchor="end">equipo, variables</text>
+        <rect class="caja" x="20" y="328" width="250" height="40" rx="9"/>
+        <text x="36" y="353" font-size="14" font-weight="600">AWS</text>
+        <text x="256" y="353" font-size="11" class="t-muted" text-anchor="end">CloudTrail, GuardDuty</text>
+        <rect class="caja" x="20" y="376" width="250" height="40" rx="9"/>
+        <text x="36" y="401" font-size="14" font-weight="600">Mis apps</text>
+        <text x="256" y="401" font-size="11" class="t-muted" text-anchor="end">accesos, logins</text>
+
+        <!-- Bus de la ronda -->
+        <g class="linea">
+          <line x1="270" y1="66" x2="300" y2="66"/><line x1="270" y1="114" x2="300" y2="114"/>
+          <line x1="270" y1="204" x2="300" y2="204"/><line x1="270" y1="252" x2="300" y2="252"/>
+          <line x1="270" y1="300" x2="300" y2="300"/><line x1="270" y1="342" x2="300" y2="342"/>
+          <line x1="270" y1="390" x2="300" y2="390"/>
+          <line x1="300" y1="66" x2="300" y2="390"/>
+        </g>
+        <line class="linea" x1="300" y1="140" x2="428" y2="140" marker-end="url(#pf)"/>
+        <text x="312" y="132" font-size="11" class="t-muted">1 vez por día</text>
+
+        <!-- Vigía: solo AWS y apps -->
+        <path class="linea-acc fluye" d="M270 356 H340 V362 H420"/>
+        <path class="linea-acc fluye" d="M270 404 H340 V386 H420"/>
+        <polygon class="flecha-a" points="420,357 430,362 420,367"/>
+        <polygon class="flecha-a" points="420,381 430,386 420,391"/>
+        <text x="384" y="436" font-size="11" class="t-accent">cada 15 min</text>
+
+        <!-- Frontera -->
+        <line class="frontera" x1="372" y1="40" x2="372" y2="440"/>
+        <text x="372" y="458" font-size="11" class="t-mono t-warn" text-anchor="middle">SOLO LECTURA · nunca escribe del otro lado</text>
+
+        <!-- Ronda -->
+        <rect class="caja-fuerte" x="430" y="70" width="290" height="150" rx="14"/>
+        <text x="450" y="102" font-size="18" class="t-title">Ronda diaria</text>
+        <text x="700" y="102" font-size="12" class="t-mono t-accent" text-anchor="end">8:30</text>
+        <text x="450" y="124" font-size="12" class="t-muted">Claude juzga cada coincidencia</text>
+        <g font-size="11" class="t-mono">
+          <rect class="caja-sal" x="450" y="142" width="80" height="26" rx="6"/><text x="490" y="159" text-anchor="middle">inventario</text>
+          <rect class="caja-sal" x="538" y="142" width="80" height="26" rx="6"/><text x="578" y="159" text-anchor="middle">Aguara</text>
+          <rect class="caja-sal" x="626" y="142" width="74" height="26" rx="6"/><text x="663" y="159" text-anchor="middle">Radar</text>
+          <rect class="caja-sal" x="450" y="176" width="80" height="26" rx="6"/><text x="490" y="193" text-anchor="middle">AWS</text>
+          <rect class="caja-sal" x="538" y="176" width="80" height="26" rx="6"/><text x="578" y="193" text-anchor="middle">Vercel</text>
+          <rect class="caja-sal" x="626" y="176" width="74" height="26" rx="6"/><text x="663" y="193" text-anchor="middle">juicio</text>
+        </g>
+
+        <!-- Memoria -->
+        <rect class="caja" x="485" y="246" width="180" height="36" rx="9"/>
+        <text x="575" y="269" font-size="12" text-anchor="middle">memoria: lo que ya vio</text>
+        <line class="linea" x1="575" y1="222" x2="575" y2="244" marker-start="url(#pf)" marker-end="url(#pf)"/>
+        <line class="linea" x1="575" y1="284" x2="575" y2="318" marker-start="url(#pf)" marker-end="url(#pf)"/>
+
+        <!-- Vigía -->
+        <rect class="caja-fuerte" x="430" y="320" width="290" height="104" rx="14"/>
+        <text x="450" y="352" font-size="18" class="t-title">Vigía</text>
+        <text x="700" y="352" font-size="12" class="t-mono t-accent" text-anchor="end">cada 15 min</text>
+        <text x="450" y="374" font-size="12" class="t-muted">Sin IA: cuenta y compara con umbrales</text>
+        <text x="450" y="400" font-size="11" class="t-mono t-muted">1 aviso por cosa por día · máx. 25</text>
+
+        <!-- Salidas -->
+        <text x="830" y="34" class="t-mono t-muted" font-size="11" letter-spacing="1.2">TE LLEGA</text>
+        <rect class="caja" x="830" y="96" width="230" height="52" rx="10"/>
+        <text x="848" y="118" font-size="14" font-weight="600">Informe del día</text>
+        <text x="848" y="137" font-size="11" class="t-muted">repo privado: te toca / revisar / no</text>
+        <rect class="caja-fuerte" x="830" y="246" width="230" height="52" rx="10"/>
+        <text x="848" y="268" font-size="14" font-weight="600">Telegram</text>
+        <text x="848" y="287" font-size="11" class="t-muted">solo lo nuevo</text>
+
+        <path class="linea" d="M720 118 H828" marker-end="url(#pf)"/>
+        <text x="738" y="110" font-size="11" class="t-muted">escribe</text>
+        <path class="linea" d="M720 190 H770 V262 H828" marker-end="url(#pf)"/>
+        <text x="778" y="230" font-size="11" class="t-muted">si es nuevo</text>
+        <path class="linea-acc fluye" d="M720 372 H770 V282 H822"/>
+        <polygon class="flecha-a" points="820,277 830,282 820,287"/>
+        <text x="778" y="330" font-size="11" class="t-accent">mientras pasa</text>
+      </svg>
+    </div>
+    <figcaption>Todo lo de la izquierda se lee con usuarios que no pueden cambiar nada: en AWS, uno que solo ve hallazgos y el historial; en cada base, uno que solo ve dos tablas. Si alguien roba esas claves, ve lo mismo que hackme y nada más.</figcaption>
+  </figure>
+
+  <figure class="fig" aria-labelledby="f2">
+    <div class="fig-head">
+      <span class="eyebrow">Un ataque a escala</span>
+      <h2 id="f2">"Che, te están escaneando"</h2>
+      <p class="nota">Una IP saca la lista de rutas del JavaScript del login y las prueba una por una. En 5 minutos ya probó 70. El vigía la ve en su siguiente pasada.</p>
+    </div>
+    <div class="ataque">
+      <div class="lienzo">
+        <svg viewBox="0 0 640 300" role="img" aria-label="Rutas distintas probadas por una IP entre las 02:15 y las 03:00. Cruza el umbral de 20 a las 02:23 y llega a 70 a las 02:27. El vigía avisa en la pasada de las 02:30.">
+          <!-- grilla y ejes: y 0..80 → 250..30; x 02:15..03:00 → 50..610 -->
+          <g class="grilla">
+            <line x1="50" y1="195" x2="610" y2="195"/><line x1="50" y1="140" x2="610" y2="140"/>
+            <line x1="50" y1="85" x2="610" y2="85"/><line x1="50" y1="30" x2="610" y2="30"/>
+          </g>
+          <line class="eje" x1="50" y1="250" x2="610" y2="250"/>
+          <g font-size="11" class="t-mono t-muted" text-anchor="end">
+            <text x="42" y="254">0</text><text x="42" y="199">20</text><text x="42" y="144">40</text><text x="42" y="89">60</text><text x="42" y="34">80</text>
+          </g>
+          <g font-size="11" class="t-mono t-muted" text-anchor="middle">
+            <text x="50" y="270">02:15</text><text x="236.7" y="270">02:30</text><text x="423.3" y="270">02:45</text><text x="610" y="270">03:00</text>
+          </g>
+          <text x="50" y="292" font-size="11" class="t-muted">rutas distintas probadas por la IP (acumulado)</text>
+
+          <!-- pasadas del vigía -->
+          <g class="pasada">
+            <line x1="50" y1="30" x2="50" y2="250"/><line x1="236.7" y1="30" x2="236.7" y2="250"/>
+            <line x1="423.3" y1="30" x2="423.3" y2="250"/><line x1="610" y1="30" x2="610" y2="250"/>
+          </g>
+          <text x="429" y="246" font-size="10.5" class="t-mono t-muted">pasada del vigía</text>
+
+          <!-- umbral -->
+          <line class="umbral" x1="50" y1="195" x2="610" y2="195"/>
+          <text x="604" y="188" font-size="11" class="t-warn" text-anchor="end">umbral: 20 rutas en 15 min</text>
+
+          <!-- datos -->
+          <path class="area" d="M50 250 L124.7 250 L137.1 241.75 L149.6 211.5 L162 170.25 L174.4 129 L186.9 90.5 L199.3 57.5 L236.7 52 L298.9 49.25 L423.3 41 L572.7 35.5 L610 35.5 L610 250 Z"/>
+          <polyline class="curva" points="50,250 124.7,250 137.1,241.75 149.6,211.5 162,170.25 174.4,129 186.9,90.5 199.3,57.5 236.7,52 298.9,49.25 423.3,41 572.7,35.5 610,35.5"/>
+
+          <!-- cruce y aviso -->
+          <circle class="punto-alerta" cx="154.6" cy="195" r="4.5"/>
+          <text x="160" y="214" font-size="11" class="t-mono">02:23 cruza</text>
+          <circle class="punto-acc" cx="236.7" cy="52" r="6.5"/>
+          <rect x="246" y="58" width="168" height="24" rx="6" class="caja-fuerte"/>
+          <text x="256" y="74.5" font-size="12" font-weight="600" class="t-accent">02:30 · te llega el aviso</text>
+        </svg>
+      </div>
+      <div class="mensaje" aria-label="Ejemplo del aviso que manda el vigía">
+        <div class="mensaje-top">
+          <div class="avatar" aria-hidden="true">h_</div>
+          <div><b>hackme</b><span>02:30</span></div>
+        </div>
+        <div class="burbuja">
+          <span class="tit">🚨 tu-app: te están escaneando desde 203.0.113.24</span>
+          <span>En los últimos 15 min probó 70 rutas distintas que fueron rechazadas (64 no existen). Ejemplos: /api/admin, /api/users, /api/export. Se presenta como: python-requests/2.31.</span>
+          <span class="tag">[A8 · vigía]</span>
+        </div>
+        <div class="contra">
+          <b class="sin">08:30+</b><span>sin hackme: se vio a la mañana siguiente, buscándolo a mano</span>
+          <b class="con">02:30</b><span>con hackme: 8 minutos después de la primera ruta</span>
+        </div>
+        <span class="ejemplo">ILUSTRATIVO, SOBRE UN ESCANEO REAL · IP DE DOCUMENTACIÓN</span>
+      </div>
+    </div>
+  </figure>
+
+  <figure class="fig" aria-labelledby="f3">
+    <div class="fig-head">
+      <span class="eyebrow">Qué vigila</span>
+      <h2 id="f3">81 detecciones, sacadas de los estándares</h2>
+      <p class="nota">No es lo que se me ocurrió: es lo que mira un equipo de seguridad. Cada cuadro es una detección con su fuente; los llenos ya andan.</p>
+    </div>
+    <div class="lienzo">
+      <div class="waffle">
+        <div class="fila"><div class="fila-nom"><b>Ronda diaria</b><span>10 de 10 andando</span></div><div class="celdas"><span class="celda ok" title="R1 · Advisory affects something you run">R1</span><span class="celda ok" title="R2 · Prompt injection / dangerous instructions in the agentic surface (skills, `CLAUDE.md`, MCP configs, workflows)">R2</span><span class="celda ok" title="R3 · Compromised package installed">R3</span><span class="celda ok" title="R4 · Secret files committed to git">R4</span><span class="celda ok" title="R5 · Hardcoded credentials">R5</span><span class="celda ok" title="R6 · Secret with a public prefix (ships to the browser)">R6</span><span class="celda ok" title="R7 · Production secrets also in `development` / not `sensitive` / `plain`">R7</span><span class="celda ok" title="R8 · Unprotected previews, firewall off on custom domains">R8</span><span class="celda ok" title="R9 · Stale published projects">R9</span><span class="celda ok" title="R10 · GuardDuty severity 4+, Security Hub and Inspector HIGH/CRITICAL">R10</span></div></div>
+        <div class="fila"><div class="fila-nom"><b>Ataque en curso</b><span>9 de 15 andando</span></div><div class="celdas"><span class="celda ok" title="A1 · Failures on one account">A1</span><span class="celda ok" title="A2 · Spray from one IP">A2</span><span class="celda ok" title="A3 · Distributed stuffing">A3</span><span class="celda ok" title="A4 · Success after failures">A4</span><span class="celda ok" title="A5 · Denied logins">A5</span><span class="celda ok" title="A6 · New country / impossible travel">A6</span><span class="celda falta" title="A7 · Session hijack signs">A7</span><span class="celda ok" title="A8 · Forced browsing / 404 burst">A8</span><span class="celda ok" title="A9 · Scanner fingerprint">A9</span><span class="celda falta" title="A10 · Injection attempts">A10</span><span class="celda ok" title="A11 · Firewall action surge">A11</span><span class="celda falta" title="A12 · Authorization failures / IDOR">A12</span><span class="celda falta" title="A13 · Abnormal data volume / scraping">A13</span><span class="celda falta" title="A14 · Honeytrap hit">A14</span><span class="celda falta" title="A15 · 5xx spike">A15</span></div></div>
+        <div class="fila"><div class="fila-nom"><b>Cuentas e identidad</b><span>7 de 12 andando</span></div><div class="celdas"><span class="celda falta" title="B1 · App privilege change">B1</span><span class="celda falta" title="B2 · Login by an offboarded user">B2</span><span class="celda falta" title="B3 · GitHub member / role change">B3</span><span class="celda falta" title="B4 · GitHub 2FA requirement disabled">B4</span><span class="celda falta" title="B5 · GitHub token granted">B5</span><span class="celda ok" title="B6 · Vercel team change">B6</span><span class="celda ok" title="B7 · AWS root use">B7</span><span class="celda ok" title="B8 · AWS console sign-in risk">B8</span><span class="celda ok" title="B9 · AWS unauthorized API calls">B9</span><span class="celda ok" title="B10 · New IAM identity or key">B10</span><span class="celda ok" title="B11 · Stolen AWS credentials">B11</span><span class="celda ok" title="B12 · Database logins">B12</span></div></div>
+        <div class="fila"><div class="fila-nom"><b>Cambios en la nube</b><span>10 de 13 andando</span></div><div class="celdas"><span class="celda ok" title="C1 · CloudTrail tampering">C1</span><span class="celda ok" title="C2 · IAM or password policy change">C2</span><span class="celda ok" title="C3 · KMS key disabled or scheduled for deletion">C3</span><span class="celda ok" title="C4 · S3 policy / public exposure">C4</span><span class="celda ok" title="C5 · AWS Config change">C5</span><span class="celda ok" title="C6 · Network change">C6</span><span class="celda ok" title="C7 · Organizations change">C7</span><span class="celda ok" title="C8 · Detector disabled">C8</span><span class="celda parcial" title="C9 · Database made public / snapshot exfiltration">C9</span><span class="celda ok" title="C10 · Database theft or destruction">C10</span><span class="celda parcial" title="C11 · Secrets changed or read">C11</span><span class="celda parcial" title="C12 · Protection, domain or project moved">C12</span><span class="celda ok" title="C13 · Log source went silent">C13</span></div></div>
+        <div class="fila"><div class="fila-nom"><b>Código y supply chain</b><span>0 de 10 andando</span></div><div class="celdas"><span class="celda falta" title="D1 · Repo made public">D1</span><span class="celda falta" title="D2 · Branch protection weakened">D2</span><span class="celda falta" title="D3 · Deploy key added">D3</span><span class="celda falta" title="D4 · App installed with broad access">D4</span><span class="celda falta" title="D5 · New webhook">D5</span><span class="celda falta" title="D6 · Secret leaked">D6</span><span class="celda falta" title="D7 · Secret controls bypassed">D7</span><span class="celda falta" title="D8 · Critical dependency">D8</span><span class="celda falta" title="D9 · Repo deleted or transferred">D9</span><span class="celda falta" title="D10 · Mass clone">D10</span></div></div>
+        <div class="fila"><div class="fila-nom"><b>Higiene diaria</b><span>1 de 12 andando</span></div><div class="celdas"><span class="celda ok" title="E1 · Dormant accounts, and accounts that log in but do nothing">E1</span><span class="celda falta" title="E2 · Accounts without MFA">E2</span><span class="celda parcial" title="E3 · AWS root hygiene">E3</span><span class="celda falta" title="E4 · Stale access keys">E4</span><span class="celda falta" title="E5 · Unused credentials">E5</span><span class="celda falta" title="E6 · Offboarding drift">E6</span><span class="celda falta" title="E7 · Privileged account count">E7</span><span class="celda falta" title="E8 · Non-human access inventory">E8</span><span class="celda falta" title="E9 · Logging coverage and retention">E9</span><span class="celda parcial" title="E10 · Infra posture drift">E10</span><span class="celda falta" title="E11 · Repo security coverage">E11</span><span class="celda parcial" title="E12 · Open vulnerabilities by severity and age">E12</span></div></div>
+        <div class="fila"><div class="fila-nom"><b>Métricas del programa</b><span>0 de 9 andando</span></div><div class="celdas"><span class="celda falta" title="F1 · MTTD (time to detect)">F1</span><span class="celda falta" title="F2 · MTTA (time to acknowledge)">F2</span><span class="celda falta" title="F3 · MTTR (time to recover)">F3</span><span class="celda falta" title="F4 · Remediation time vs. SLA by severity">F4</span><span class="celda falta" title="F5 · % of assets monitored">F5</span><span class="celda falta" title="F6 · % patched">F6</span><span class="celda falta" title="F7 · Secret exposure time">F7</span><span class="celda falta" title="F8 · Mean age of open critical findings">F8</span><span class="celda falta" title="F9 · False-positive rate, and weekly review done">F9</span></div></div>
+      </div>
+    </div>
+    <div class="ley">
+      <span><i class="ok"></i><b>37</b> funcionando</span>
+      <span><i class="parcial"></i><b>6</b> a medias</span>
+      <span><i class="falta"></i><b>38</b> por armar</span>
+    </div>
+    <div class="fuentes">
+      <span class="fuente">OWASP AppSensor</span><span class="fuente">OWASP Logging Vocabulary</span><span class="fuente">MITRE ATT&amp;CK</span>
+      <span class="fuente">CIS AWS Foundations v5</span><span class="fuente">CIS Controls v8</span><span class="fuente">NIST SP 800-55</span><span class="fuente">NIST SP 800-63B</span>
+    </div>
+  </figure>
+
+  <figure class="fig" aria-labelledby="f4">
+    <div class="fig-head">
+      <span class="eyebrow">Dónde se engancha</span>
+      <h2 id="f4">El circuito, de la primera línea de código a producción</h2>
+      <p class="nota">Cada etapa del desarrollo deja rastros. hackme corre por debajo y los lee todos.</p>
+    </div>
+    <div class="lienzo ancho">
+      <svg viewBox="0 0 1000 230" role="img" aria-label="Siete etapas: sesión de código y antes del PR por armar; PR en GitHub, build y deploy, y alerta en el momento a medias; producción y ronda diaria funcionando. hackme lee lo que deja cada etapa.">
+        <line class="eje" x1="70" y1="62" x2="928" y2="62"/>
+        <g class="pasada">
+          <line x1="70" y1="154" x2="70" y2="176"/><line x1="213" y1="154" x2="213" y2="176"/><line x1="356" y1="154" x2="356" y2="176"/>
+          <line x1="499" y1="154" x2="499" y2="176"/><line x1="642" y1="154" x2="642" y2="176"/><line x1="785" y1="154" x2="785" y2="176"/>
+          <line x1="928" y1="154" x2="928" y2="176"/>
+        </g>
+        <circle class="n-falta" cx="70" cy="62" r="20"/><circle class="n-falta" cx="213" cy="62" r="20"/>
+        <circle class="n-parcial" cx="356" cy="62" r="20"/><circle class="n-parcial" cx="499" cy="62" r="20"/>
+        <circle class="n-ok" cx="642" cy="62" r="20"/><circle class="n-parcial" cx="785" cy="62" r="20"/>
+        <circle class="n-ok" cx="928" cy="62" r="20"/>
+        <g font-size="13" font-weight="600" text-anchor="middle">
+          <text x="70" y="22">Sesión de código</text><text x="213" y="22">Antes del PR</text><text x="356" y="22">PR en GitHub</text>
+          <text x="499" y="22">Build y deploy</text><text x="642" y="22">Producción</text><text x="785" y="22">Alerta al momento</text>
+          <text x="928" y="22">Ronda diaria</text>
+        </g>
+        <g font-size="11" class="t-mono t-muted" text-anchor="middle">
+          <text x="70" y="108">mcp-aguara</text><text x="70" y="123">oktsec</text>
+          <text x="213" y="108">security-review</text>
+          <text x="356" y="108">Actions</text><text x="356" y="123">Aguara, gitleaks</text>
+          <text x="499" y="108">Vercel</text><text x="499" y="123">Inspector</text>
+          <text x="642" y="108">GuardDuty</text><text x="642" y="123">Security Hub</text>
+          <text x="785" y="108">vigía</text><text x="785" y="123">CloudTrail</text>
+          <text x="928" y="108">Radar</text><text x="928" y="123">Aguara</text>
+        </g>
+        <g font-size="10.5" class="t-mono" text-anchor="middle">
+          <text x="70" y="146" class="t-muted">POR ARMAR</text><text x="213" y="146" class="t-muted">POR ARMAR</text>
+          <text x="356" y="146" class="t-warn">A MEDIAS</text><text x="499" y="146" class="t-warn">A MEDIAS</text>
+          <text x="642" y="146" class="t-accent">ANDANDO</text><text x="785" y="146" class="t-warn">A MEDIAS</text>
+          <text x="928" y="146" class="t-accent">ANDANDO</text>
+        </g>
+        <rect class="barra-h" x="30" y="178" width="940" height="38" rx="10"/>
+        <text x="50" y="202" font-size="14" class="t-title">hackme</text>
+        <text x="122" y="202" font-size="12" class="t-muted">lee lo que deja cada etapa y lo cruza con lo que pasa en el mundo</text>
+      </svg>
+    </div>
+    <figcaption>"A medias" en la alerta al momento: el vigía está armado y probado contra AWS real; falta dejarlo prendido y darle el usuario de solo lectura de cada base.</figcaption>
+  </figure>
+
+  <section aria-labelledby="reglas-t" class="fig">
+    <div class="fig-head">
+      <span class="eyebrow">Lo que no se negocia</span>
+      <h2 id="reglas-t">Reglas</h2>
+    </div>
+    <div class="reglas">
+      <div class="regla"><b>Solo observa</b><span>No edita, no desinstala, no cambia nada en AWS ni en Vercel. Los arreglos van como propuesta.</span></div>
+      <div class="regla"><b>No bloquea</b><span>Avisa. Las decisiones las toma una persona.</span></div>
+      <div class="regla"><b>Usuarios de solo lectura</b><span>Si una clave se filtra, el que la tiene no puede cambiar nada.</span></div>
+      <div class="regla"><b>Secretos, nunca</b><span>No abre archivos .env ni pide valores de variables. De lo expuesto dice el nombre, nunca el valor.</span></div>
+      <div class="regla"><b>Lo privado no sale</b><span>El código es público. Los informes y las consultas de cada app viven en un repo privado.</span></div>
+      <div class="regla"><b>Lo que lee no le da órdenes</b><span>Un repo, un aviso o un log que le pide hacer algo es un dato, no una instrucción.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Construido sobre el open source de <a href="https://www.oktsec.com" target="_blank" rel="noopener">Oktsec</a> (Gus Aragón): <a href="https://www.oktsec.com/radar" target="_blank" rel="noopener">Radar</a> y <a href="https://github.com/garagon/aguara" target="_blank" rel="noopener">Aguara</a>. El agente corre en Claude Code.</p>
+    <p class="mono">Radar es una selección editorial y Aguara un escáner de patrones: que algo no aparezca no prueba que estés a salvo.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var c = document.getElementById("radar");
+  if (!c || !c.getContext) return;
+  var ctx = c.getContext("2d");
+  var S = c.width, R = S / 2 - 40, cx = S / 2, cy = S / 2;
+  var blips = [
+    { a: -1.2, r: 0.82, t: "64 repos" }, { a: -0.25, r: 0.58, t: "Mac" }, { a: 0.7, r: 0.78, t: "AWS" },
+    { a: 1.65, r: 0.5, t: "Vercel" }, { a: 2.6, r: 0.74, t: "apps" }, { a: 3.75, r: 0.62, t: "Radar" }
+  ];
+  var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var col = {};
+  function leer() {
+    var s = getComputedStyle(document.documentElement);
+    ["--accent", "--line", "--grid", "--fg", "--muted", "--bg", "--alert"].forEach(function (k) { col[k] = s.getPropertyValue(k).trim(); });
+  }
+  function rgba(hex, a) {
+    var h = hex.replace("#", "");
+    if (h.length !== 6) return hex;
+    return "rgba(" + parseInt(h.slice(0, 2), 16) + "," + parseInt(h.slice(2, 4), 16) + "," + parseInt(h.slice(4, 6), 16) + "," + a + ")";
+  }
+  function dibujar(ang) {
+    ctx.clearRect(0, 0, S, S);
+    ctx.lineWidth = 2;
+    for (var i = 1; i <= 4; i++) {
+      ctx.strokeStyle = col["--line"]; ctx.beginPath(); ctx.arc(cx, cy, R * i / 4, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.strokeStyle = col["--grid"]; ctx.beginPath();
+    ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+    // barrido
+    var g = ctx.createConicGradient ? ctx.createConicGradient(ang - 1.1, cx, cy) : null;
+    if (g) {
+      g.addColorStop(0, rgba(col["--accent"], 0)); g.addColorStop(0.175, rgba(col["--accent"], 0.32)); g.addColorStop(0.176, rgba(col["--accent"], 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, ang - 1.1, ang); ctx.closePath(); ctx.fill();
+    }
+    ctx.strokeStyle = col["--accent"]; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(ang) * R, cy + Math.sin(ang) * R); ctx.stroke();
+    // blips: brillan cuando el barrido acaba de pasar
+    ctx.font = "500 26px " + getComputedStyle(document.body).getPropertyValue("--font-mono");
+    blips.forEach(function (b) {
+      var d = ((ang - b.a) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+      var brillo = quieto ? 1 : Math.max(0.35, 1 - d / 4);
+      var x = cx + Math.cos(b.a) * R * b.r, y = cy + Math.sin(b.a) * R * b.r;
+      ctx.fillStyle = rgba(col["--accent"], brillo);
+      ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = rgba(col["--accent"], brillo * 0.5); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = rgba(col["--fg"], Math.max(0.55, brillo));
+      ctx.textAlign = Math.cos(b.a) < -0.2 ? "right" : "left";
+      ctx.fillText(b.t, x + (Math.cos(b.a) < -0.2 ? -28 : 28), y + 9);
+    });
+    ctx.fillStyle = col["--accent"]; ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
+  }
+  leer();
+  var ang = -0.6;
+  dibujar(ang);
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var f = function () { leer(); dibujar(ang); };
+    if (mq.addEventListener) mq.addEventListener("change", f);
+    new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  }
+  if (quieto) return;
+  var t0 = null;
+  function paso(t) {
+    if (t0 === null) t0 = t;
+    ang = -0.6 + ((t - t0) / 4200) * Math.PI * 2;
+    dibujar(ang);
+    requestAnimationFrame(paso);
+  }
+  requestAnimationFrame(paso);
+})();
+</script>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 672 332" width="672" height="332" role="img" aria-label="A route scan to scale and the moment the vigía alerts">
+<title>A route scan to scale and the moment the vigía alerts</title>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #0D2020; }
+.t-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.t-muted { fill: #4A6560; }
+.t-accent { fill: #18723E; }
+.t-warn { fill: #A0680A; }
+.t-title { font-weight: 700; }
+.fondo { fill: #FFFFFF; }
+.caja { fill: #F3F8F5; stroke: #C3D8CE; stroke-width: 1; }
+.caja-fuerte { fill: #F3F8F5; stroke: #3FCB67; stroke-width: 2; }
+.caja-sal { fill: #FFFFFF; stroke: #C3D8CE; stroke-width: 1; }
+.linea { stroke: #7E9A92; stroke-width: 1.5; fill: none; }
+.linea-acc { stroke: #3FCB67; stroke-width: 2.25; fill: none; }
+.frontera { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+.grilla { stroke: #E3EEE8; stroke-width: 1; }
+.eje { stroke: #C3D8CE; stroke-width: 1; }
+.umbral { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 6 4; }
+.pasada { stroke: #9DB4AC; stroke-width: 1; stroke-dasharray: 2 4; }
+.area { fill: rgba(63, 203, 103, 0.18); stroke: none; }
+.curva { stroke: #2DB457; stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+.punto-acc { fill: #3FCB67; }
+.punto-alerta { fill: #C8402E; }
+.flecha-p { fill: #7E9A92; }
+.flecha-a { fill: #3FCB67; }
+.n-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 2; }
+.n-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 2.5; }
+.n-falta { fill: #FFFFFF; stroke: #9DB4AC; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.barra-h { fill: #0D2020; stroke: none; }
+.barra-h-t { fill: #FFFFFF; }
+.barra-h-acc { fill: #6BE386; }
+.c-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 1.5; }
+.c-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 1.75; }
+.c-falta { fill: #FFFFFF; stroke: #B5C9C1; stroke-width: 1.25; stroke-dasharray: 3 2.5; }
+.c-t-ok { fill: #0D2020; }
+.c-t-parcial { fill: #A0680A; }
+.c-t-falta { fill: #7E9A92; }
+.marca { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; fill: #0D2020; }
+.anillo { fill: none; stroke: #C3D8CE; stroke-width: 1.5; }
+.barrido { fill: rgba(107, 227, 134, 0.28); }
+.blip { fill: #3FCB67; }
+.blip-halo { fill: none; stroke: rgba(63, 203, 103, 0.45); stroke-width: 1.5; }
+</style>
+<rect class="fondo" x="0" y="0" width="672" height="332"/>
+<g transform="translate(16 16)">
+          
+          <g class="grilla">
+            <line x1="50" y1="195" x2="610" y2="195"/><line x1="50" y1="140" x2="610" y2="140"/>
+            <line x1="50" y1="85" x2="610" y2="85"/><line x1="50" y1="30" x2="610" y2="30"/>
+          </g>
+          <line class="eje" x1="50" y1="250" x2="610" y2="250"/>
+          <g font-size="11" class="t-mono t-muted" text-anchor="end">
+            <text x="42" y="254">0</text><text x="42" y="199">20</text><text x="42" y="144">40</text><text x="42" y="89">60</text><text x="42" y="34">80</text>
+          </g>
+          <g font-size="11" class="t-mono t-muted" text-anchor="middle">
+            <text x="50" y="270">02:15</text><text x="236.7" y="270">02:30</text><text x="423.3" y="270">02:45</text><text x="610" y="270">03:00</text>
+          </g>
+          <text x="50" y="292" font-size="11" class="t-muted">distinct routes probed by one IP (cumulative)</text>
+
+          
+          <g class="pasada">
+            <line x1="50" y1="30" x2="50" y2="250"/><line x1="236.7" y1="30" x2="236.7" y2="250"/>
+            <line x1="423.3" y1="30" x2="423.3" y2="250"/><line x1="610" y1="30" x2="610" y2="250"/>
+          </g>
+          <text x="429" y="246" font-size="10.5" class="t-mono t-muted">vigía pass</text>
+
+          
+          <line class="umbral" x1="50" y1="195" x2="610" y2="195"/>
+          <text x="604" y="188" font-size="11" class="t-warn" text-anchor="end">threshold: 20 routes in 15 min</text>
+
+          
+          <path class="area" d="M50 250 L124.7 250 L137.1 241.75 L149.6 211.5 L162 170.25 L174.4 129 L186.9 90.5 L199.3 57.5 L236.7 52 L298.9 49.25 L423.3 41 L572.7 35.5 L610 35.5 L610 250 Z"/>
+          <polyline class="curva" points="50,250 124.7,250 137.1,241.75 149.6,211.5 162,170.25 174.4,129 186.9,90.5 199.3,57.5 236.7,52 298.9,49.25 423.3,41 572.7,35.5 610,35.5"/>
+
+          
+          <circle class="punto-alerta" cx="154.6" cy="195" r="4.5"/>
+          <text x="160" y="214" font-size="11" class="t-mono">02:23 crosses</text>
+          <circle class="punto-acc" cx="236.7" cy="52" r="6.5"/>
+          <rect x="246" y="58" width="168" height="24" rx="6" class="caja-fuerte"/>
+          <text x="256" y="74.5" font-size="12" font-weight="600" class="t-accent">02:30 · you get the alert</text>
+        </g>
+</svg>

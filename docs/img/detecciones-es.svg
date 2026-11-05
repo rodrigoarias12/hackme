@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 426" width="840" height="426" role="img" aria-label="81 detecciones por familia y estado">
+<title>81 detecciones por familia y estado</title>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #0D2020; }
+.t-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.t-muted { fill: #4A6560; }
+.t-accent { fill: #18723E; }
+.t-warn { fill: #A0680A; }
+.t-title { font-weight: 700; }
+.fondo { fill: #FFFFFF; }
+.caja { fill: #F3F8F5; stroke: #C3D8CE; stroke-width: 1; }
+.caja-fuerte { fill: #F3F8F5; stroke: #3FCB67; stroke-width: 2; }
+.caja-sal { fill: #FFFFFF; stroke: #C3D8CE; stroke-width: 1; }
+.linea { stroke: #7E9A92; stroke-width: 1.5; fill: none; }
+.linea-acc { stroke: #3FCB67; stroke-width: 2.25; fill: none; }
+.frontera { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+.grilla { stroke: #E3EEE8; stroke-width: 1; }
+.eje { stroke: #C3D8CE; stroke-width: 1; }
+.umbral { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 6 4; }
+.pasada { stroke: #9DB4AC; stroke-width: 1; stroke-dasharray: 2 4; }
+.area { fill: rgba(63, 203, 103, 0.18); stroke: none; }
+.curva { stroke: #2DB457; stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+.punto-acc { fill: #3FCB67; }
+.punto-alerta { fill: #C8402E; }
+.flecha-p { fill: #7E9A92; }
+.flecha-a { fill: #3FCB67; }
+.n-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 2; }
+.n-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 2.5; }
+.n-falta { fill: #FFFFFF; stroke: #9DB4AC; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.barra-h { fill: #0D2020; stroke: none; }
+.barra-h-t { fill: #FFFFFF; }
+.barra-h-acc { fill: #6BE386; }
+.c-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 1.5; }
+.c-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 1.75; }
+.c-falta { fill: #FFFFFF; stroke: #B5C9C1; stroke-width: 1.25; stroke-dasharray: 3 2.5; }
+.c-t-ok { fill: #0D2020; }
+.c-t-parcial { fill: #A0680A; }
+.c-t-falta { fill: #7E9A92; }
+.marca { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; fill: #0D2020; }
+.anillo { fill: none; stroke: #C3D8CE; stroke-width: 1.5; }
+.barrido { fill: rgba(107, 227, 134, 0.28); }
+.blip { fill: #3FCB67; }
+.blip-halo { fill: none; stroke: rgba(63, 203, 103, 0.45); stroke-width: 1.5; }
+</style>
+<rect class="fondo" x="0" y="0" width="840" height="426"/>
+<text x="24" y="45" font-size="15" class="t-title">Ronda diaria</text>
+<text x="24" y="63" font-size="12" class="t-mono t-muted">10 de 10 andando</text>
+<rect class="c-ok" x="250" y="32" width="32" height="32" rx="7"/>
+<text x="266.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R1</text>
+<rect class="c-ok" x="288" y="32" width="32" height="32" rx="7"/>
+<text x="304.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R2</text>
+<rect class="c-ok" x="326" y="32" width="32" height="32" rx="7"/>
+<text x="342.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R3</text>
+<rect class="c-ok" x="364" y="32" width="32" height="32" rx="7"/>
+<text x="380.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R4</text>
+<rect class="c-ok" x="402" y="32" width="32" height="32" rx="7"/>
+<text x="418.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R5</text>
+<rect class="c-ok" x="440" y="32" width="32" height="32" rx="7"/>
+<text x="456.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R6</text>
+<rect class="c-ok" x="478" y="32" width="32" height="32" rx="7"/>
+<text x="494.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R7</text>
+<rect class="c-ok" x="516" y="32" width="32" height="32" rx="7"/>
+<text x="532.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R8</text>
+<rect class="c-ok" x="554" y="32" width="32" height="32" rx="7"/>
+<text x="570.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R9</text>
+<rect class="c-ok" x="592" y="32" width="32" height="32" rx="7"/>
+<text x="608.0" y="52" font-size="10" class="t-mono c-t-ok" text-anchor="middle">R10</text>
+<text x="24" y="95" font-size="15" class="t-title">Ataque en curso</text>
+<text x="24" y="113" font-size="12" class="t-mono t-muted">9 de 15 andando</text>
+<rect class="c-ok" x="250" y="82" width="32" height="32" rx="7"/>
+<text x="266.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A1</text>
+<rect class="c-ok" x="288" y="82" width="32" height="32" rx="7"/>
+<text x="304.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A2</text>
+<rect class="c-ok" x="326" y="82" width="32" height="32" rx="7"/>
+<text x="342.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A3</text>
+<rect class="c-ok" x="364" y="82" width="32" height="32" rx="7"/>
+<text x="380.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A4</text>
+<rect class="c-ok" x="402" y="82" width="32" height="32" rx="7"/>
+<text x="418.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A5</text>
+<rect class="c-ok" x="440" y="82" width="32" height="32" rx="7"/>
+<text x="456.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A6</text>
+<rect class="c-falta" x="478" y="82" width="32" height="32" rx="7"/>
+<text x="494.0" y="102" font-size="10" class="t-mono c-t-falta" text-anchor="middle">A7</text>
+<rect class="c-ok" x="516" y="82" width="32" height="32" rx="7"/>
+<text x="532.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A8</text>
+<rect class="c-ok" x="554" y="82" width="32" height="32" rx="7"/>
+<text x="570.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A9</text>
+<rect class="c-falta" x="592" y="82" width="32" height="32" rx="7"/>
+<text x="608.0" y="102" font-size="10" class="t-mono c-t-falta" text-anchor="middle">A10</text>
+<rect class="c-ok" x="630" y="82" width="32" height="32" rx="7"/>
+<text x="646.0" y="102" font-size="10" class="t-mono c-t-ok" text-anchor="middle">A11</text>
+<rect class="c-falta" x="668" y="82" width="32" height="32" rx="7"/>
+<text x="684.0" y="102" font-size="10" class="t-mono c-t-falta" text-anchor="middle">A12</text>
+<rect class="c-falta" x="706" y="82" width="32" height="32" rx="7"/>
+<text x="722.0" y="102" font-size="10" class="t-mono c-t-falta" text-anchor="middle">A13</text>
+<rect class="c-falta" x="744" y="82" width="32" height="32" rx="7"/>
+<text x="760.0" y="102" font-size="10" class="t-mono c-t-falta" text-anchor="middle">A14</text>
+<rect class="c-falta" x="782" y="82" width="32" height="32" rx="7"/>
+<text x="798.0" y="102" font-size="10" class="t-mono c-t-falta" text-anchor="middle">A15</text>
+<text x="24" y="145" font-size="15" class="t-title">Cuentas e identidad</text>
+<text x="24" y="163" font-size="12" class="t-mono t-muted">7 de 12 andando</text>
+<rect class="c-falta" x="250" y="132" width="32" height="32" rx="7"/>
+<text x="266.0" y="152" font-size="10" class="t-mono c-t-falta" text-anchor="middle">B1</text>
+<rect class="c-falta" x="288" y="132" width="32" height="32" rx="7"/>
+<text x="304.0" y="152" font-size="10" class="t-mono c-t-falta" text-anchor="middle">B2</text>
+<rect class="c-falta" x="326" y="132" width="32" height="32" rx="7"/>
+<text x="342.0" y="152" font-size="10" class="t-mono c-t-falta" text-anchor="middle">B3</text>
+<rect class="c-falta" x="364" y="132" width="32" height="32" rx="7"/>
+<text x="380.0" y="152" font-size="10" class="t-mono c-t-falta" text-anchor="middle">B4</text>
+<rect class="c-falta" x="402" y="132" width="32" height="32" rx="7"/>
+<text x="418.0" y="152" font-size="10" class="t-mono c-t-falta" text-anchor="middle">B5</text>
+<rect class="c-ok" x="440" y="132" width="32" height="32" rx="7"/>
+<text x="456.0" y="152" font-size="10" class="t-mono c-t-ok" text-anchor="middle">B6</text>
+<rect class="c-ok" x="478" y="132" width="32" height="32" rx="7"/>
+<text x="494.0" y="152" font-size="10" class="t-mono c-t-ok" text-anchor="middle">B7</text>
+<rect class="c-ok" x="516" y="132" width="32" height="32" rx="7"/>
+<text x="532.0" y="152" font-size="10" class="t-mono c-t-ok" text-anchor="middle">B8</text>
+<rect class="c-ok" x="554" y="132" width="32" height="32" rx="7"/>
+<text x="570.0" y="152" font-size="10" class="t-mono c-t-ok" text-anchor="middle">B9</text>
+<rect class="c-ok" x="592" y="132" width="32" height="32" rx="7"/>
+<text x="608.0" y="152" font-size="10" class="t-mono c-t-ok" text-anchor="middle">B10</text>
+<rect class="c-ok" x="630" y="132" width="32" height="32" rx="7"/>
+<text x="646.0" y="152" font-size="10" class="t-mono c-t-ok" text-anchor="middle">B11</text>
+<rect class="c-ok" x="668" y="132" width="32" height="32" rx="7"/>
+<text x="684.0" y="152" font-size="10" class="t-mono c-t-ok" text-anchor="middle">B12</text>
+<text x="24" y="195" font-size="15" class="t-title">Cambios en la nube</text>
+<text x="24" y="213" font-size="12" class="t-mono t-muted">10 de 13 andando</text>
+<rect class="c-ok" x="250" y="182" width="32" height="32" rx="7"/>
+<text x="266.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C1</text>
+<rect class="c-ok" x="288" y="182" width="32" height="32" rx="7"/>
+<text x="304.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C2</text>
+<rect class="c-ok" x="326" y="182" width="32" height="32" rx="7"/>
+<text x="342.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C3</text>
+<rect class="c-ok" x="364" y="182" width="32" height="32" rx="7"/>
+<text x="380.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C4</text>
+<rect class="c-ok" x="402" y="182" width="32" height="32" rx="7"/>
+<text x="418.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C5</text>
+<rect class="c-ok" x="440" y="182" width="32" height="32" rx="7"/>
+<text x="456.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C6</text>
+<rect class="c-ok" x="478" y="182" width="32" height="32" rx="7"/>
+<text x="494.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C7</text>
+<rect class="c-ok" x="516" y="182" width="32" height="32" rx="7"/>
+<text x="532.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C8</text>
+<rect class="c-parcial" x="554" y="182" width="32" height="32" rx="7"/>
+<text x="570.0" y="202" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">C9</text>
+<rect class="c-ok" x="592" y="182" width="32" height="32" rx="7"/>
+<text x="608.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C10</text>
+<rect class="c-parcial" x="630" y="182" width="32" height="32" rx="7"/>
+<text x="646.0" y="202" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">C11</text>
+<rect class="c-parcial" x="668" y="182" width="32" height="32" rx="7"/>
+<text x="684.0" y="202" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">C12</text>
+<rect class="c-ok" x="706" y="182" width="32" height="32" rx="7"/>
+<text x="722.0" y="202" font-size="10" class="t-mono c-t-ok" text-anchor="middle">C13</text>
+<text x="24" y="245" font-size="15" class="t-title">Código y supply chain</text>
+<text x="24" y="263" font-size="12" class="t-mono t-muted">0 de 10 andando</text>
+<rect class="c-falta" x="250" y="232" width="32" height="32" rx="7"/>
+<text x="266.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D1</text>
+<rect class="c-falta" x="288" y="232" width="32" height="32" rx="7"/>
+<text x="304.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D2</text>
+<rect class="c-falta" x="326" y="232" width="32" height="32" rx="7"/>
+<text x="342.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D3</text>
+<rect class="c-falta" x="364" y="232" width="32" height="32" rx="7"/>
+<text x="380.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D4</text>
+<rect class="c-falta" x="402" y="232" width="32" height="32" rx="7"/>
+<text x="418.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D5</text>
+<rect class="c-falta" x="440" y="232" width="32" height="32" rx="7"/>
+<text x="456.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D6</text>
+<rect class="c-falta" x="478" y="232" width="32" height="32" rx="7"/>
+<text x="494.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D7</text>
+<rect class="c-falta" x="516" y="232" width="32" height="32" rx="7"/>
+<text x="532.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D8</text>
+<rect class="c-falta" x="554" y="232" width="32" height="32" rx="7"/>
+<text x="570.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D9</text>
+<rect class="c-falta" x="592" y="232" width="32" height="32" rx="7"/>
+<text x="608.0" y="252" font-size="10" class="t-mono c-t-falta" text-anchor="middle">D10</text>
+<text x="24" y="295" font-size="15" class="t-title">Higiene diaria</text>
+<text x="24" y="313" font-size="12" class="t-mono t-muted">1 de 12 andando</text>
+<rect class="c-ok" x="250" y="282" width="32" height="32" rx="7"/>
+<text x="266.0" y="302" font-size="10" class="t-mono c-t-ok" text-anchor="middle">E1</text>
+<rect class="c-falta" x="288" y="282" width="32" height="32" rx="7"/>
+<text x="304.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E2</text>
+<rect class="c-parcial" x="326" y="282" width="32" height="32" rx="7"/>
+<text x="342.0" y="302" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">E3</text>
+<rect class="c-falta" x="364" y="282" width="32" height="32" rx="7"/>
+<text x="380.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E4</text>
+<rect class="c-falta" x="402" y="282" width="32" height="32" rx="7"/>
+<text x="418.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E5</text>
+<rect class="c-falta" x="440" y="282" width="32" height="32" rx="7"/>
+<text x="456.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E6</text>
+<rect class="c-falta" x="478" y="282" width="32" height="32" rx="7"/>
+<text x="494.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E7</text>
+<rect class="c-falta" x="516" y="282" width="32" height="32" rx="7"/>
+<text x="532.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E8</text>
+<rect class="c-falta" x="554" y="282" width="32" height="32" rx="7"/>
+<text x="570.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E9</text>
+<rect class="c-parcial" x="592" y="282" width="32" height="32" rx="7"/>
+<text x="608.0" y="302" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">E10</text>
+<rect class="c-falta" x="630" y="282" width="32" height="32" rx="7"/>
+<text x="646.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E11</text>
+<rect class="c-parcial" x="668" y="282" width="32" height="32" rx="7"/>
+<text x="684.0" y="302" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">E12</text>
+<text x="24" y="345" font-size="15" class="t-title">Métricas del programa</text>
+<text x="24" y="363" font-size="12" class="t-mono t-muted">0 de 9 andando</text>
+<rect class="c-falta" x="250" y="332" width="32" height="32" rx="7"/>
+<text x="266.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F1</text>
+<rect class="c-falta" x="288" y="332" width="32" height="32" rx="7"/>
+<text x="304.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F2</text>
+<rect class="c-falta" x="326" y="332" width="32" height="32" rx="7"/>
+<text x="342.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F3</text>
+<rect class="c-falta" x="364" y="332" width="32" height="32" rx="7"/>
+<text x="380.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F4</text>
+<rect class="c-falta" x="402" y="332" width="32" height="32" rx="7"/>
+<text x="418.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F5</text>
+<rect class="c-falta" x="440" y="332" width="32" height="32" rx="7"/>
+<text x="456.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F6</text>
+<rect class="c-falta" x="478" y="332" width="32" height="32" rx="7"/>
+<text x="494.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F7</text>
+<rect class="c-falta" x="516" y="332" width="32" height="32" rx="7"/>
+<text x="532.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F8</text>
+<rect class="c-falta" x="554" y="332" width="32" height="32" rx="7"/>
+<text x="570.0" y="352" font-size="10" class="t-mono c-t-falta" text-anchor="middle">F9</text>
+<rect class="c-ok" x="24" y="390" width="16" height="16" rx="4"/>
+<text x="48" y="403" font-size="13" class="t-muted">37 funcionando</text>
+<rect class="c-parcial" x="182.39999999999998" y="390" width="16" height="16" rx="4"/>
+<text x="206.39999999999998" y="403" font-size="13" class="t-muted">6 a medias</text>
+<rect class="c-falta" x="310.4" y="390" width="16" height="16" rx="4"/>
+<text x="334.4" y="403" font-size="13" class="t-muted">38 por armar</text>
+</svg>

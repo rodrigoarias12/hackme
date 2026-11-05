@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="1200" height="380" role="img" aria-label="hackme: un agente de seguridad que solo mira y avisa">
+<title>hackme: un agente de seguridad que solo mira y avisa</title>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #0D2020; }
+.t-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.t-muted { fill: #4A6560; }
+.t-accent { fill: #18723E; }
+.t-warn { fill: #A0680A; }
+.t-title { font-weight: 700; }
+.fondo { fill: #FFFFFF; }
+.caja { fill: #F3F8F5; stroke: #C3D8CE; stroke-width: 1; }
+.caja-fuerte { fill: #F3F8F5; stroke: #3FCB67; stroke-width: 2; }
+.caja-sal { fill: #FFFFFF; stroke: #C3D8CE; stroke-width: 1; }
+.linea { stroke: #7E9A92; stroke-width: 1.5; fill: none; }
+.linea-acc { stroke: #3FCB67; stroke-width: 2.25; fill: none; }
+.frontera { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+.grilla { stroke: #E3EEE8; stroke-width: 1; }
+.eje { stroke: #C3D8CE; stroke-width: 1; }
+.umbral { stroke: #C98B12; stroke-width: 1.5; stroke-dasharray: 6 4; }
+.pasada { stroke: #9DB4AC; stroke-width: 1; stroke-dasharray: 2 4; }
+.area { fill: rgba(63, 203, 103, 0.18); stroke: none; }
+.curva { stroke: #2DB457; stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+.punto-acc { fill: #3FCB67; }
+.punto-alerta { fill: #C8402E; }
+.flecha-p { fill: #7E9A92; }
+.flecha-a { fill: #3FCB67; }
+.n-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 2; }
+.n-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 2.5; }
+.n-falta { fill: #FFFFFF; stroke: #9DB4AC; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.barra-h { fill: #0D2020; stroke: none; }
+.barra-h-t { fill: #FFFFFF; }
+.barra-h-acc { fill: #6BE386; }
+.c-ok { fill: #6BE386; stroke: #3FCB67; stroke-width: 1.5; }
+.c-parcial { fill: #FFFFFF; stroke: #C98B12; stroke-width: 1.75; }
+.c-falta { fill: #FFFFFF; stroke: #B5C9C1; stroke-width: 1.25; stroke-dasharray: 3 2.5; }
+.c-t-ok { fill: #0D2020; }
+.c-t-parcial { fill: #A0680A; }
+.c-t-falta { fill: #7E9A92; }
+.marca { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; fill: #0D2020; }
+.anillo { fill: none; stroke: #C3D8CE; stroke-width: 1.5; }
+.barrido { fill: rgba(107, 227, 134, 0.28); }
+.blip { fill: #3FCB67; }
+.blip-halo { fill: none; stroke: rgba(63, 203, 103, 0.45); stroke-width: 1.5; }
+</style>
+<rect class="fondo" x="0" y="0" width="1200" height="380"/>
+<text x="64" y="176" font-size="112" class="marca">hackme</text>
+<rect x="478" y="96" width="52" height="84" fill="#6BE386"/>
+<text x="68" y="232" font-size="22" class="t-muted">Un agente de seguridad que mira todo lo que corrés</text>
+<text x="68" y="264" font-size="22" class="t-muted">y avisa solo lo que te toca. No bloquea nada.</text>
+<text x="68" y="318" font-size="14" class="t-mono t-accent">Oktsec Radar · Aguara · AWS · Vercel · Claude Code</text>
+<circle class="anillo" cx="960" cy="190" r="37.5"/>
+<circle class="anillo" cx="960" cy="190" r="75.0"/>
+<circle class="anillo" cx="960" cy="190" r="112.5"/>
+<circle class="anillo" cx="960" cy="190" r="150.0"/>
+<line class="eje" x1="810" y1="190" x2="1110" y2="190"/><line class="eje" x1="960" y1="40" x2="960" y2="340"/>
+<path class="barrido" d="M960 190 L940.7 41.3 A150 150 0 0 1 1083.8 105.3 Z"/>
+<line x1="960" y1="190" x2="1083.8" y2="105.3" stroke="#3FCB67" stroke-width="2.5"/>
+<circle class="blip-halo" cx="1004.6" cy="75.4" r="11"/><circle class="blip" cx="1004.6" cy="75.4" r="5.5"/>
+<text x="1021.6" y="80.4" font-size="14" class="t-mono" text-anchor="start">64 repos</text>
+<circle class="blip-halo" cx="1047.2" cy="167.7" r="11"/><circle class="blip" cx="1047.2" cy="167.7" r="5.5"/>
+<text x="1064.2" y="172.7" font-size="14" class="t-mono" text-anchor="start">Mac</text>
+<circle class="blip-halo" cx="1051.8" cy="267.3" r="11"/><circle class="blip" cx="1051.8" cy="267.3" r="5.5"/>
+<text x="1068.8" y="272.3" font-size="14" class="t-mono" text-anchor="start">AWS</text>
+<circle class="blip-halo" cx="953.8" cy="267.8" r="11"/><circle class="blip" cx="953.8" cy="267.8" r="5.5"/>
+<text x="970.8" y="272.8" font-size="14" class="t-mono" text-anchor="start">Vercel</text>
+<circle class="blip-halo" cx="862.3" cy="248.8" r="11"/><circle class="blip" cx="862.3" cy="248.8" r="5.5"/>
+<text x="845.3" y="253.8" font-size="14" class="t-mono" text-anchor="end">apps</text>
+<circle class="blip-halo" cx="883.7" cy="136.8" r="11"/><circle class="blip" cx="883.7" cy="136.8" r="5.5"/>
+<text x="866.7" y="141.8" font-size="14" class="t-mono" text-anchor="end">Radar</text>
+<circle class="blip" cx="960" cy="190" r="5"/>
+</svg>

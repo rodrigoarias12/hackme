@@ -1,6 +1,7 @@
 # hackme
 
 [Español](README.es.md)
+<p align="center"><img src="docs/img/banner-en.svg" alt="hackme: a security agent that only watches and warns" width="100%"></p>
 
 A security agent that watches **everything you run**: your repos, your Mac, your AWS account and
 your Vercel teams. Every day it cross-matches [Oktsec Radar](https://www.oktsec.com/radar)
@@ -30,6 +31,8 @@ proposals for a human.
 - [Roadmap](#roadmap)
 
 ## How it works
+
+<p align="center"><img src="docs/img/flujo-en.svg" alt="How hackme works: a daily round and a 15-minute watch, both reading behind a read-only boundary, alerting on Telegram" width="100%"></p>
 
 ```
 bin/hackme ronda
@@ -71,10 +74,14 @@ the first run is a baseline and later runs only surface what changed.
 | **AWS** | GuardDuty findings (severity 4+), Security Hub HIGH/CRITICAL, Inspector HIGH/CRITICAL | AWS CLI with a read-only profile, one or more `profile:region` pairs |
 | **Vercel** | Pending access requests and new team members; secret-looking variables with a public prefix (they ship to the browser); `plain` secrets; production secrets also in `development` (anyone running `vercel env pull` takes them home); production secrets not marked `sensitive`; unprotected previews and disabled firewall on projects with a custom domain; stale published projects; audit events (`env pull`, variables changed, members, tokens, protection, firewall) | Vercel REST API through the logged-in CLI (`vercel api`) or `VERCEL_TOKEN`. Only each variable's `key`, `type` and `target`, never its value |
 
+<p align="center"><img src="docs/img/detecciones-en.svg" alt="81 detections by family: 37 running, 6 partial, 38 to do" width="100%"></p>
+
 The full list of detections, built and planned, grounded in OWASP, MITRE ATT&CK and the CIS
 benchmarks, is in [docs/detecciones.md](docs/detecciones.md).
 
 ## Vigía: the 15-minute watch
+
+<p align="center"><img src="docs/img/ataque-en.svg" alt="A route scan to scale: one IP crosses the threshold at 02:23 and the vigía alerts at 02:30" width="100%"></p>
 
 ```
 bin/hackme vigia               every 15 min (launchd on the Mac)
@@ -237,6 +244,8 @@ hackme-privado/         private repo: never public
 - AWS covers only the regions you list, and GuardDuty findings below severity 4 are skipped.
 
 ## Roadmap
+
+<p align="center"><img src="docs/img/circuito-en.svg" alt="The development loop from coding session to production, and where hackme reads from each stage" width="100%"></p>
 
 - **Vigía:** run it always on (a scheduled CI job in the private repo); session hijack signs (A7),
   authorization probing (A12), scraping (A13).
