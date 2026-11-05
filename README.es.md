@@ -15,6 +15,11 @@ probando logins, usando la cuenta root de AWS, apagando logs. Te avisa por Teleg
 No bloquea ni arregla nada: mira, compara y avisa. Los arreglos van al informe como propuestas
 para una persona.
 
+**Usalo tal cual, o como base para armar tu propio agente de seguridad.** Cada pieza (las
+reglas, el skill, cada fuente, las detecciones de 15 minutos, el catálogo) está separada y
+documentada: te quedás con las que necesitás y sumás las tuyas. Ver
+[Armá tu propio agente de seguridad](#armá-tu-propio-agente-de-seguridad).
+
 - [Cómo funciona](#cómo-funciona)
 - [Qué mira](#qué-mira)
 - [Vigía: la guardia de 15 minutos](#vigía-la-guardia-de-15-minutos)
@@ -23,6 +28,7 @@ para una persona.
 - [Telegram](#telegram)
 - [Configuración](#configuración)
 - [Comandos](#comandos)
+- [Armá tu propio agente de seguridad](#armá-tu-propio-agente-de-seguridad)
 - [Dónde vive cada cosa](#dónde-vive-cada-cosa)
 - [Reglas de base](#reglas-de-base)
 - [Límites](#límites)
@@ -201,6 +207,57 @@ bin/preparar-nube          baja y verifica Aguara en una sesión en la nube
 
 Códigos de salida: `0` ok, `1` error, `2` falta algo (`doctor`) o Telegram no está configurado
 (`bin/avisar`).
+
+## Armá tu propio agente de seguridad
+
+hackme es un agente de seguridad, y también un kit para armar otros: uno que solo mire los logins
+de tu app, uno para una sola cuenta en la nube, uno para tu compu, uno para un cliente. Las piezas
+están separadas a propósito.
+
+| Pieza | Qué reusás | Dónde |
+|---|---|---|
+| Las reglas | Lo que ningún agente de seguridad debería hacer: cambiar cosas, bloquear, abrir secretos, obedecer lo que lee | [AGENTS.md](AGENTS.md) |
+| El skill | Cómo un agente juzga los hallazgos, escribe el informe y decide si avisar | [skills/hackme/SKILL.md](skills/hackme/SKILL.md) |
+| Las fuentes | Un módulo de Python por fuente (Aguara, Radar, AWS, Vercel), solo lectura, sin dependencias | `hackme/*.py` |
+| La memoria | `nuevo` / `actualizado` / `visto` / `línea de base` por hallazgo, para que aparezca solo lo que cambió | `hackme/memoria.py` |
+| La guardia | Detecciones determinísticas como funciones puras: entran filas, salen alertas | `hackme/vigia.py` |
+| El catálogo | 81 detecciones con su fuente (OWASP, MITRE ATT&CK, CIS, NIST) y su estado | [docs/detecciones.md](docs/detecciones.md) |
+| La salida | Un JSON que el agente lee para juzgar | [docs/ronda.md](docs/ronda.md) |
+| Los avisos | Telegram, con respaldo local o en un issue privado | `hackme/avisar.py`, `bin/avisar` |
+
+### Sumar una fuente
+
+GitHub, Google Workspace, Cloudflare, Supabase, tu propia app: los mismos pasos.
+
+1. Creá `hackme/<fuente>.py` con un `correr()` que solo lea y devuelva
+   `{"hallazgos": [...], "errores": {...}}`. Cada hallazgo es
+   `{"id", "servicio", "severidad", "titulo", "recurso", "detalle"}`; `detalle` lleva nombres y
+   cantidades, nunca valores de secretos.
+2. Llamá a `memoria.marcar("<fuente>", hallazgos)` para que cada hallazgo tenga su estado y la
+   primera corrida quede como línea de base.
+3. Sumalo a `hackme/ronda.py` y dale un comando en `hackme/__main__.py`.
+4. Decile al agente cómo juzgarlo: una sección en el skill (qué va arriba de todo, qué es ruido).
+5. Marcá las filas que cubre en [docs/detecciones.md](docs/detecciones.md).
+
+### Sumar una detección al vigía
+
+Escribí un `detectar_<cosa>()` que reciba filas y devuelva alertas (`clave`, `deteccion`,
+`titulo`, `detalle`), poné su umbral en `UMBRALES` diciendo si sale de una fuente (`[S]`) o es un
+punto de partida (`[M]`), y sumá un test con filas de ejemplo. La clave decide qué se repite: un
+aviso por clave por día.
+
+### Usarlo con otro agente
+
+El skill es un `SKILL.md` común, así que lo puede manejar cualquier agente que lea skills (Claude
+Code, Codex, Cursor, Gemini CLI): `npx skills add rodrigoarias12/hackme`. [AGENTS.md](AGENTS.md)
+es el contrato para los agentes que cambian el código.
+
+### Algunos agentes que podés armar con esto
+
+- **Guardia de una app:** solo el vigía con las consultas de tu app, avisando en el chat del equipo.
+- **Cuenta en la nube:** solo `aws` y `vercel`, una vez por día, para una cuenta que administrás para otro.
+- **Tu compu:** `HACKME_MODO=mac`: apps, extensiones, configs MCP y repos locales.
+- **Cadena de suministro:** solo Radar y Aguara sobre tus repos, antes de cada release.
 
 ## Dónde vive cada cosa
 

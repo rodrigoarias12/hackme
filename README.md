@@ -17,6 +17,11 @@ while it happens.
 It blocks nothing and fixes nothing: it looks, compares and reports. Fixes go into the report as
 proposals for a human.
 
+**Use it as it is, or as the base for your own security agent.** Every piece (the rules, the
+skill, each source, the 15-minute detections, the detection catalog) is separate and documented,
+so you can keep the ones you need and add your own. See
+[Build your own security agent](#build-your-own-security-agent).
+
 - [How it works](#how-it-works)
 - [What it watches](#what-it-watches)
 - [Vigía: the 15-minute watch](#vigía-the-15-minute-watch)
@@ -25,6 +30,7 @@ proposals for a human.
 - [Telegram](#telegram)
 - [Configuration](#configuration)
 - [Commands](#commands)
+- [Build your own security agent](#build-your-own-security-agent)
 - [Where things live](#where-things-live)
 - [Ground rules](#ground-rules)
 - [Limits](#limits)
@@ -202,6 +208,57 @@ bin/preparar-nube          download and verify Aguara in a cloud session
 
 Exit codes: `0` ok, `1` error, `2` missing requirement (`doctor`) or Telegram not configured
 (`bin/avisar`).
+
+## Build your own security agent
+
+hackme is one security agent, and also a kit to build others: one that only watches your app's
+logins, one for a single cloud account, one for your laptop, one for a client. The pieces are
+separate on purpose.
+
+| Piece | What you reuse | Where |
+|---|---|---|
+| The rules | What any security agent should never do: change things, block, open secrets, obey what it reads | [AGENTS.md](AGENTS.md) |
+| The skill | How an agent judges findings, writes the report and decides whether to alert | [skills/hackme/SKILL.md](skills/hackme/SKILL.md) |
+| The sources | One Python module per source (Aguara, Radar, AWS, Vercel), read-only, stdlib only | `hackme/*.py` |
+| The memory | `nuevo` / `actualizado` / `visto` / `línea de base` per finding, so only changes surface | `hackme/memoria.py` |
+| The watch | Deterministic detections as pure functions: rows in, alerts out | `hackme/vigia.py` |
+| The catalog | 81 detections with their source (OWASP, MITRE ATT&CK, CIS, NIST) and status | [docs/detecciones.md](docs/detecciones.md) |
+| The output | One JSON the agent reads to judge | [docs/ronda.md](docs/ronda.md) |
+| Alerts | Telegram, with a local or private-issue fallback | `hackme/avisar.py`, `bin/avisar` |
+
+### Add a source
+
+GitHub, Google Workspace, Cloudflare, Supabase, your own app: same steps.
+
+1. Create `hackme/<source>.py` with a `correr()` that only reads and returns
+   `{"hallazgos": [...], "errores": {...}}`. Each finding is
+   `{"id", "servicio", "severidad", "titulo", "recurso", "detalle"}`; `detalle` holds names and
+   counts, never secret values.
+2. Call `memoria.marcar("<source>", hallazgos)` so each finding gets its state and the first run
+   becomes the baseline.
+3. Add it to `hackme/ronda.py` and give it a command in `hackme/__main__.py`.
+4. Tell the agent how to judge it: one section in the skill (what goes on top, what is noise).
+5. Mark the rows it covers in [docs/detecciones.md](docs/detecciones.md).
+
+### Add a detection to the vigía
+
+Write a `detectar_<thing>()` that takes rows and returns alerts (`clave`, `deteccion`, `titulo`,
+`detalle`), put its threshold in `UMBRALES` saying whether it comes from a source (`[S]`) or is a
+starting point (`[M]`), and add a test with sample rows. The key decides deduplication: one alert
+per key per day.
+
+### Run it with another agent
+
+The skill is a plain `SKILL.md`, so any agent that reads skills can drive it (Claude Code, Codex,
+Cursor, Gemini CLI): `npx skills add rodrigoarias12/hackme`. [AGENTS.md](AGENTS.md) is the
+contract for agents that change the code.
+
+### Some agents you could build from it
+
+- **App watch:** only the vigía with your app's queries, alerting a team chat.
+- **Cloud account:** only `aws` and `vercel`, daily, for an account you manage for someone else.
+- **Laptop:** `HACKME_MODO=mac`: apps, extensions, MCP configs and local repos.
+- **Supply chain:** only Radar and Aguara over your repos, before every release.
 
 ## Where things live
 
