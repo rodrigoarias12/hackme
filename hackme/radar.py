@@ -31,7 +31,7 @@ GENERICOS = {
 
 
 def bajar():
-    req = urllib.request.Request(rutas.RADAR_ITEMS, headers={"User-Agent": "centinela/1"})
+    req = urllib.request.Request(rutas.RADAR_ITEMS, headers={"User-Agent": "hackme/1"})
     with urllib.request.urlopen(req, timeout=60) as r:
         datos = json.load(r)
     rutas.ESTADO.mkdir(parents=True, exist_ok=True)
@@ -141,7 +141,7 @@ def _menciones(item):
     repos = {}
     for archivo in salida.splitlines():
         rel = archivo.removeprefix(str(rutas.ESPEJO) + "/")
-        if rel.split("/")[0] != "centinela":  # este repo nombra a todos los proveedores
+        if rel.split("/")[0] != "hackme":  # este repo nombra a todos los proveedores
             repos.setdefault(rel.split("/")[0], []).append(rel)
     return [{"fuerza": "mencion", "tipo": "documentación", "nombre": vendor, "version": None,
              "donde": f"{repo} ({len(a)} archivos, p. ej. {a[0]})"} for repo, a in sorted(repos.items())]

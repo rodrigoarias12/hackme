@@ -1,3 +1,0 @@
-#!/bin/sh
-# Corre Centinela desde cualquier carpeta. -I: no cargar módulos de la carpeta actual.
-cd "$(dirname "$0")/.." && exec python3 -I -c 'import runpy, sys; sys.path.insert(0, "."); runpy.run_module("centinela", run_name="__main__")' "$@"

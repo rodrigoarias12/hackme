@@ -1,4 +1,4 @@
-# Centinela
+# hackme
 
 [English](README.md)
 
@@ -30,7 +30,7 @@ para una persona.
 ## Cómo funciona
 
 ```
-bin/centinela ronda
+bin/hackme ronda
   ├─ inventario   cada carpeta de ~/Documents/GitHub + la Mac
   │               (paquetes npm/PyPI/Go, imágenes Docker, Actions, configs MCP, servicios,
   │                apps, brew, extensiones de Cursor/VS Code, runtimes)
@@ -44,13 +44,13 @@ bin/centinela ronda
         ↓
   estado/ronda.json  (forma: docs/ronda.md)
         ↓
-  el agente (skills/centinela/SKILL.md) juzga cada candidato, escribe el informe en un repo
+  el agente (skills/hackme/SKILL.md) juzga cada candidato, escribe el informe en un repo
   privado y te avisa por Telegram si hay algo nuevo
 ```
 
 Dos capas a propósito:
 
-- **El CLI** (`centinela/`, solo biblioteca estándar de Python) es determinístico: junta, cruza y
+- **El CLI** (`hackme/`, solo biblioteca estándar de Python) es determinístico: junta, cruza y
   recuerda lo que ya vio. Cruza de más a propósito; nunca decide "te afecta".
 - **El skill** es donde el agente juzga: compara la versión instalada con el rango del aviso, lee
   la línea citada antes de decir que algo es real, descarta datos de prueba y escribe un informe
@@ -75,7 +75,7 @@ benchmarks de CIS, está en [docs/detecciones.md](docs/detecciones.md).
 ## Vigía: la guardia de 15 minutos
 
 ```
-bin/centinela vigia               cada 15 min (launchd en la Mac)
+bin/hackme vigia               cada 15 min (launchd en la Mac)
   ├─ tus apps     SQL que escribís vos, solo lectura: accesos, logins, cuentas
   │               → barridos de rutas, escáneres, picos del firewall, spraying, logins
   │                 después de fallos, países nuevos, un log que se calló, cuentas dormidas
@@ -91,11 +91,11 @@ lectura para Postgres y AWS, y la tarea de launchd: [docs/vigia.md](docs/vigia.m
 ## Instalar
 
 ```bash
-git clone https://github.com/rodrigoarias12/centinela
-cd centinela
-bin/centinela doctor        # te dice qué falta (sale 2 si falta algo obligatorio)
-bin/centinela init          # crea el repo privado de informes y memoria (git local)
-bin/centinela ronda         # primera ronda: todo queda como línea de base
+git clone https://github.com/rodrigoarias12/hackme
+cd hackme
+bin/hackme doctor        # te dice qué falta (sale 2 si falta algo obligatorio)
+bin/hackme init          # crea el repo privado de informes y memoria (git local)
+bin/hackme ronda         # primera ronda: todo queda como línea de base
 ```
 
 Requisitos:
@@ -111,20 +111,20 @@ Si subís el repo privado a GitHub, **que sea privado**: tiene los informes con 
 
 ### Con tu agente
 
-Centinela es un CLI más un skill, así que lo puede manejar cualquier agente:
+hackme es un CLI más un skill, así que lo puede manejar cualquier agente:
 
 ```bash
-npx skills add rodrigoarias12/centinela   # Claude Code, Codex, Cursor, Gemini CLI…
+npx skills add rodrigoarias12/hackme   # Claude Code, Codex, Cursor, Gemini CLI…
 ```
 
-Después pedile *"corré la ronda de Centinela"*. Los agentes que trabajen **sobre** este repo leen
+Después pedile *"corré la ronda de hackme"*. Los agentes que trabajen **sobre** este repo leen
 primero [AGENTS.md](AGENTS.md): reglas, configuración y la forma de la salida.
 
 ## Que corra todos los días
 
 Programá el mismo pedido en uno o en los dos lugares:
 
-| | Rutina en la nube (`CENTINELA_MODO=nube`) | Tarea local (`CENTINELA_MODO=mac`) |
+| | Rutina en la nube (`HACKME_MODO=nube`) | Tarea local (`HACKME_MODO=mac`) |
 |---|---|---|
 | Repos | los de GitHub, clonados en la sesión | carpetas sin remoto (la nube no las ve) |
 | Mac (apps, brew, runtimes, MCP) | — | sí |
@@ -132,12 +132,12 @@ Programá el mismo pedido en uno o en los dos lugares:
 | Vercel | `VERCEL_TOKEN` en el ambiente | el CLI logueado |
 | Corre con la compu apagada | sí | no |
 
-- **Local:** una tarea programada de Claude Code con el pedido *"corré la ronda de Centinela"* y
-  `CENTINELA_MODO=mac`.
+- **Local:** una tarea programada de Claude Code con el pedido *"corré la ronda de hackme"* y
+  `HACKME_MODO=mac`.
 - **Nube:** una rutina de Claude cuyas fuentes son tus repos de GitHub, este y el privado. La
   sesión corre primero `bin/preparar-nube`. La GitHub App de Claude necesita acceso a cada repo
   que quieras revisar.
-- **A mano:** `CENTINELA_MODO=todo` (el default) cubre todo desde tu compu.
+- **A mano:** `HACKME_MODO=todo` (el default) cubre todo desde tu compu.
 
 ## Telegram
 
@@ -145,14 +145,14 @@ Programá el mismo pedido en uno o en los dos lugares:
    del bot.
 2. Mandale cualquier mensaje a tu bot nuevo, abrí
    `https://api.telegram.org/bot<TOKEN>/getUpdates` y copiá `chat.id`.
-3. Guardá los dos en `~/.config/centinela/telegram.env` (fuera de cualquier repo):
+3. Guardá los dos en `~/.config/hackme/telegram.env` (fuera de cualquier repo):
 
    ```
    TELEGRAM_BOT_TOKEN=...
    TELEGRAM_CHAT_ID=...
    ```
 
-4. Probalo: `bin/avisar "Centinela prendido"`.
+4. Probalo: `bin/avisar "hackme prendido"`.
 
 El agente avisa solo cuando hay algo nuevo en "te afecta"; si no hay nada nuevo, no molesta. Si
 Telegram no está configurado, `bin/avisar` sale con 2 y el agente usa una notificación del
@@ -165,29 +165,29 @@ Todo por variables de entorno. Los defaults sirven para una Mac con los repos en
 
 | Variable | Default | Qué es |
 |---|---|---|
-| `CENTINELA_MODO` | `todo` | `todo` (todo), `nube` (repos clonados, sin Mac), `mac` (la Mac + carpetas sin remoto) |
-| `CENTINELA_GITHUB` | `~/Documents/GitHub` | Carpeta cuyas subcarpetas son los repos a revisar |
-| `CENTINELA_PRIVADO` | `$CENTINELA_GITHUB/centinela-privado` | Repo privado de `informes/` y `memoria/` |
-| `CENTINELA_AGUARA` | `~/go/bin/aguara` | Binario de Aguara |
-| `CENTINELA_AWS` | `default:us-east-1` (`:us-east-1` en `nube`) | Pares `perfil:región` separados por coma. Perfil vacío = credenciales `AWS_*` del ambiente |
-| `CENTINELA_IDIOMA` | español | Idioma en el que el agente escribe el informe |
+| `HACKME_MODO` | `todo` | `todo` (todo), `nube` (repos clonados, sin Mac), `mac` (la Mac + carpetas sin remoto) |
+| `HACKME_GITHUB` | `~/Documents/GitHub` | Carpeta cuyas subcarpetas son los repos a revisar |
+| `HACKME_PRIVADO` | `$HACKME_GITHUB/hackme-privado` | Repo privado de `informes/` y `memoria/` |
+| `HACKME_AGUARA` | `~/go/bin/aguara` | Binario de Aguara |
+| `HACKME_AWS` | `default:us-east-1` (`:us-east-1` en `nube`) | Pares `perfil:región` separados por coma. Perfil vacío = credenciales `AWS_*` del ambiente |
+| `HACKME_IDIOMA` | español | Idioma en el que el agente escribe el informe |
 | `VERCEL_TOKEN` | — | Token de Vercel de solo lectura (nube). En local se usa la sesión del CLI |
-| `CENTINELA_VIGIA` | `$CENTINELA_PRIVADO/vigia.json` | Las consultas del vigía para tus apps ([docs/vigia.md](docs/vigia.md)) |
-| `CENTINELA_VIGIA_AWS` | `CENTINELA_AWS` | Pares `perfil:región` del vigía; usá un perfil de solo lectura |
-| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | — | Para `bin/avisar`, o en `~/.config/centinela/telegram.env` |
+| `HACKME_VIGIA` | `$HACKME_PRIVADO/vigia.json` | Las consultas del vigía para tus apps ([docs/vigia.md](docs/vigia.md)) |
+| `HACKME_VIGIA_AWS` | `HACKME_AWS` | Pares `perfil:región` del vigía; usá un perfil de solo lectura |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | — | Para `bin/avisar`, o en `~/.config/hackme/telegram.env` |
 
 ## Comandos
 
 ```
-bin/centinela doctor       qué falta; sale 2 si falta algo obligatorio
-bin/centinela init         crea el repo privado si no existe
-bin/centinela ronda        ronda completa → estado/ronda.json (~6 min para ~60 repos)
-bin/centinela inventario   solo el inventario → estado/inventario.json
-bin/centinela radar        Radar contra el último inventario
-bin/centinela aguara       solo el escaneo con Aguara
-bin/centinela aws          solo los hallazgos de AWS
-bin/centinela vercel       solo Vercel
-bin/centinela vigia        la guardia de 15 minutos (--sin-avisar: solo imprime, no guarda)
+bin/hackme doctor       qué falta; sale 2 si falta algo obligatorio
+bin/hackme init         crea el repo privado si no existe
+bin/hackme ronda        ronda completa → estado/ronda.json (~6 min para ~60 repos)
+bin/hackme inventario   solo el inventario → estado/inventario.json
+bin/hackme radar        Radar contra el último inventario
+bin/hackme aguara       solo el escaneo con Aguara
+bin/hackme aws          solo los hallazgos de AWS
+bin/hackme vercel       solo Vercel
+bin/hackme vigia        la guardia de 15 minutos (--sin-avisar: solo imprime, no guarda)
 bin/avisar "mensaje"       manda un mensaje por Telegram
 bin/preparar-nube          baja y verifica Aguara en una sesión en la nube
 ```
@@ -198,15 +198,15 @@ Códigos de salida: `0` ok, `1` error, `2` falta algo (`doctor`) o Telegram no e
 ## Dónde vive cada cosa
 
 ```
-centinela/                 este repo: solo código, puede ser público
-  centinela/               inventario, aguara, radar, aws, vercel, memoria, ronda, rutas
-  skills/centinela/        el skill que sigue el agente
+hackme/                 este repo: solo código, puede ser público
+  hackme/               inventario, aguara, radar, aws, vercel, memoria, ronda, rutas
+  skills/hackme/        el skill que sigue el agente
   docs/ronda.md            forma de estado/ronda.json
   docs/detecciones.md      catálogo de detecciones
   docs/vigia.md            la guardia de 15 minutos
   estado/                  la salida de cada ronda y el espejo de repos (gitignored, descartable)
 
-centinela-privado/         repo privado: nunca público
+hackme-privado/         repo privado: nunca público
   informes/AAAA-MM-DD-<modo>.md
   memoria/<modo>/          lo que cada fuente ya vio
   memoria/vigia/           avisos del vigía, líneas de base y países vistos

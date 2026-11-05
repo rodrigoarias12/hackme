@@ -1,8 +1,8 @@
 # `estado/ronda.json`
 
-What `bin/centinela ronda` leaves for the agent to judge. Field names are in Spanish, like the
+What `bin/hackme ronda` leaves for the agent to judge. Field names are in Spanish, like the
 code. Everything is regenerated each round; what must persist lives in
-`$CENTINELA_PRIVADO/memoria/<modo>/`.
+`$HACKME_PRIVADO/memoria/<modo>/`.
 
 ```jsonc
 {
@@ -111,4 +111,4 @@ published projects, and audit events (`env pull`, variables added, member change
 }
 ```
 
-Matched text is never included: Aguara redacts credential matches and Centinela drops the context.
+Matched text is never included: Aguara redacts credential matches and hackme drops the context.

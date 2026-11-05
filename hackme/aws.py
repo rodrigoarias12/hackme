@@ -1,9 +1,9 @@
 """Hallazgos de los escáneres de AWS: GuardDuty, Security Hub e Inspector.
 
-AWS escanea; Centinela solo lee lo que encontraron y marca qué es nuevo desde la ronda
+AWS escanea; hackme solo lee lo que encontraron y marca qué es nuevo desde la ronda
 anterior. Todo es lectura (get/list): nunca archiva, suprime ni cambia nada en la cuenta.
 
-Perfiles: CENTINELA_AWS="perfil:region,perfil:region" (por defecto "default:us-east-1").
+Perfiles: HACKME_AWS="perfil:region,perfil:region" (por defecto "default:us-east-1").
 En la nube, sin perfiles, usa las variables AWS_* del ambiente si existen.
 """
 import json
@@ -95,7 +95,7 @@ def inspector(perfil, region):
 def correr():
     if not shutil.which("aws"):
         return {"cuentas": [], "error": "no está el CLI de AWS"}
-    perfiles = os.environ.get("CENTINELA_AWS", "default:us-east-1" if rutas.MODO != "nube" else ":us-east-1")
+    perfiles = os.environ.get("HACKME_AWS", "default:us-east-1" if rutas.MODO != "nube" else ":us-east-1")
     rutas.MEMORIA.mkdir(parents=True, exist_ok=True)
     visto_p = rutas.MEMORIA / "aws-visto.json"
     visto = json.loads(visto_p.read_text()) if visto_p.exists() else {}

@@ -1,6 +1,6 @@
 """Mandar un aviso por Telegram. Lo usan `bin/avisar` y el vigía.
 
-Lee TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID del ambiente o de ~/.config/centinela/telegram.env
+Lee TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID del ambiente o de ~/.config/hackme/telegram.env
 (líneas CLAVE=valor; ese archivo no vive en ningún repo).
 """
 import json
@@ -9,7 +9,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-ARCHIVO = Path.home() / ".config" / "centinela" / "telegram.env"
+ARCHIVO = Path.home() / ".config" / "hackme" / "telegram.env"
 
 
 def leer_env(archivo, claves):

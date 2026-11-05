@@ -6,10 +6,10 @@ Es determinístico (sin IA): lee, cuenta, compara con umbrales y avisa. Cada det
 fila en docs/detecciones.md con la fuente de la que sale.
 
 De dónde lee, todo en solo lectura:
-  - apps: consultas SQL que el dueño escribe en $CENTINELA_PRIVADO/vigia.json (el esquema de cada
+  - apps: consultas SQL que el dueño escribe en $HACKME_PRIVADO/vigia.json (el esquema de cada
     app es privado, este repo no lo conoce). Corren con `psql` dentro de una transacción READ ONLY
     y con un usuario que debería ser de solo lectura. La conexión vive en
-    ~/.config/centinela/vigia.env, nunca en un repo.
+    ~/.config/hackme/vigia.env, nunca en un repo.
   - AWS: CloudTrail (eventos de escritura) y GuardDuty de cualquier severidad para los tipos que
     importan aunque sean "Low" (uso de root, credenciales robadas, logs apagados).
 
@@ -29,8 +29,8 @@ from pathlib import Path
 
 from . import avisar, aws, rutas
 
-CONFIG = Path(os.environ.get("CENTINELA_VIGIA", rutas.PRIVADO / "vigia.json"))
-CONEXIONES = Path.home() / ".config" / "centinela" / "vigia.env"
+CONFIG = Path(os.environ.get("HACKME_VIGIA", rutas.PRIVADO / "vigia.json"))
+CONEXIONES = Path.home() / ".config" / "hackme" / "vigia.env"
 MEMORIA = rutas.PRIVADO / "memoria" / "vigia"
 
 VENTANA_MIN = 15          # cada corrida mira los últimos 15 minutos
@@ -418,7 +418,7 @@ def _conexion(nombre):
     p = urllib.parse.urlsplit(url)
     env = {"PGHOST": p.hostname or "", "PGPORT": str(p.port or 5432), "PGDATABASE": p.path.lstrip("/"),
            "PGUSER": urllib.parse.unquote(p.username or ""), "PGPASSWORD": urllib.parse.unquote(p.password or ""),
-           "PGCONNECT_TIMEOUT": "10", "PGAPPNAME": "centinela-vigia",
+           "PGCONNECT_TIMEOUT": "10", "PGAPPNAME": "hackme-vigia",
            "PGTZ": "UTC"}  # las columnas `timestamp` sin zona se comparan en UTC, como las guarda la app
     for clave, valor in urllib.parse.parse_qsl(p.query):
         if clave == "sslmode":
@@ -557,7 +557,7 @@ def correr(enviar=True, ahora=None):
             except (RuntimeError, ValueError, subprocess.TimeoutExpired, OSError) as e:
                 fallo(f"{nombre}:cuentas", e)
 
-    perfiles = os.environ.get("CENTINELA_VIGIA_AWS", os.environ.get("CENTINELA_AWS", "default:us-east-1"))
+    perfiles = os.environ.get("HACKME_VIGIA_AWS", os.environ.get("HACKME_AWS", "default:us-east-1"))
     if shutil.which("aws") and perfiles:
         desde_aws = ahora - dt.timedelta(minutes=VENTANA_AWS_MIN)
         for par in filter(None, perfiles.split(",")):
@@ -599,7 +599,7 @@ def correr(enviar=True, ahora=None):
                                  f"Se llegó a {TOPE_DIARIO} avisos. Los que siguen quedan en memoria/vigia sin avisar."))
     canal = None
     for a in salen:
-        texto = f"🚨 {a['titulo']}\n\n{a['detalle']}\n\n[{a['deteccion']} · Centinela vigía]"
+        texto = f"🚨 {a['titulo']}\n\n{a['detalle']}\n\n[{a['deteccion']} · hackme vigía]"
         if not enviar:
             print(texto, end="\n\n")
             continue

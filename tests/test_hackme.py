@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from centinela import aguara, radar, rutas  # noqa: E402
+from hackme import aguara, radar, rutas  # noqa: E402
 
 INVENTARIO = {
     "repos": {
@@ -82,7 +82,7 @@ class Capas(unittest.TestCase):
 class Modos(unittest.TestCase):
     def test_mac_solo_carpetas_sin_remoto(self):
         with tempfile.TemporaryDirectory() as raiz:
-            for nombre, remoto in (("con-remoto", True), ("sin-remoto", False), ("centinela-privado", False)):
+            for nombre, remoto in (("con-remoto", True), ("sin-remoto", False), ("hackme-privado", False)):
                 carpeta = Path(raiz) / nombre
                 carpeta.mkdir()
                 subprocess.run(["git", "init", "-q", str(carpeta)], check=True)
@@ -141,7 +141,7 @@ class VariablesDeVercel(unittest.TestCase):
 
     def hallazgos(self, envs):
         from unittest import mock
-        from centinela import vercel
+        from hackme import vercel
         salida = []
         with mock.patch.object(vercel, "_api", return_value={"envs": envs}):
             vercel._variables("team", "equipo", {"id": "p", "name": "app"}, salida)
@@ -173,7 +173,7 @@ class Vigia(unittest.TestCase):
     """Las detecciones son funciones puras: filas -> alertas."""
 
     def setUp(self):
-        from centinela import vigia
+        from hackme import vigia
         self.v = vigia
         self.u = dict(vigia.UMBRALES)
 
@@ -247,7 +247,7 @@ class Vigia(unittest.TestCase):
             with mock.patch.object(self.v, "CONFIG", cfg), mock.patch.object(self.v, "MEMORIA", Path(d) / "m"), \
                  mock.patch.object(self.v, "leer_aws", return_value=("1", eventos, [])), \
                  mock.patch.object(self.v.shutil, "which", return_value="/bin/aws"), \
-                 mock.patch.dict(os.environ, {"CENTINELA_VIGIA_AWS": "p:r"}), \
+                 mock.patch.dict(os.environ, {"HACKME_VIGIA_AWS": "p:r"}), \
                  mock.patch("builtins.print", side_effect=lambda *a, **k: impreso.append(" ".join(map(str, a)))):
                 self.v.correr(enviar=False)
             texto = "\n".join(impreso)

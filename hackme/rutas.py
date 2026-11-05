@@ -1,4 +1,4 @@
-"""Rutas y perillas de Centinela. Todo lo configurable vive acá."""
+"""Rutas y perillas de hackme. Todo lo configurable vive acá."""
 import os
 import subprocess
 from pathlib import Path
@@ -7,23 +7,23 @@ RAIZ = Path(__file__).resolve().parent.parent
 ESTADO = RAIZ / "estado"   # lo de una sola ronda; se borra sin perder nada
 ESPEJO = ESTADO / "espejo"  # copia liviana de los repos que escanea Aguara
 
-GITHUB = Path(os.environ.get("CENTINELA_GITHUB", Path.home() / "Documents" / "GitHub"))
-AGUARA = os.environ.get("CENTINELA_AGUARA", str(Path.home() / "go" / "bin" / "aguara"))
+GITHUB = Path(os.environ.get("HACKME_GITHUB", Path.home() / "Documents" / "GitHub"))
+AGUARA = os.environ.get("HACKME_AGUARA", str(Path.home() / "go" / "bin" / "aguara"))
 
 # Dónde corre esta ronda:
 #   todo -> los repos y la Mac (una corrida a mano en la Mac)
 #   nube -> la rutina en la nube de Claude: solo los repos clonados de GitHub, sin Mac
 #   mac  -> la tarea local: la Mac y las carpetas que no tienen remoto (la nube no las ve)
-MODO = os.environ.get("CENTINELA_MODO", "todo")
+MODO = os.environ.get("HACKME_MODO", "todo")
 
 # Informes y memoria entre rondas viven en un repo PRIVADO aparte: dicen qué repo tiene qué
 # problema. Este repo (el código) puede ser público; ese nunca.
-PRIVADO = Path(os.environ.get("CENTINELA_PRIVADO", GITHUB / "centinela-privado"))
+PRIVADO = Path(os.environ.get("HACKME_PRIVADO", GITHUB / "hackme-privado"))
 INFORMES = PRIVADO / "informes"
 MEMORIA = PRIVADO / "memoria" / MODO  # avisos ya vistos, hallazgos previos, hashes de --monitor
 
 # Carpetas de GITHUB que no son proyectos a revisar.
-PROPIOS = {"centinela-privado"}
+PROPIOS = {"hackme-privado"}
 
 RADAR_ITEMS = "https://www.oktsec.com/radar/items.json"
 
@@ -50,7 +50,7 @@ PODAR = {".git", "node_modules", ".next", ".venv", "venv", "dist", "build", ".tu
          ".vercel", ".cache", "__pycache__", "worktrees", "site-packages"}
 
 # Apagado hasta que el dueño lo autorice: abrir issues en los repos con hallazgos. Las alertas
-# van como issues al repo privado de Centinela, nunca a los repos revisados.
+# van como issues al repo privado de hackme, nunca a los repos revisados.
 ABRIR_ISSUES = False
 
 

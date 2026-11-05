@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """bin/avisar "mensaje" — manda un aviso por Telegram.
 
-Lee TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID del ambiente o de ~/.config/centinela/telegram.env
+Lee TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID del ambiente o de ~/.config/hackme/telegram.env
 (líneas CLAVE=valor; ese archivo no vive en ningún repo). Sale con código 2 si Telegram no
 está configurado, para que quien llama use otro canal.
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from centinela.avisar import mandar  # noqa: E402
+from hackme.avisar import mandar  # noqa: E402
 
 
 def main():

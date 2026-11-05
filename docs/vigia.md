@@ -7,8 +7,8 @@ and alerts on Telegram. Every detection is a row in [detecciones.md](detecciones
 source it comes from.
 
 ```
-bin/centinela vigia               one pass: read, detect, alert
-bin/centinela vigia --sin-avisar  print what it would alert; saves nothing
+bin/hackme vigia               one pass: read, detect, alert
+bin/hackme vigia --sin-avisar  print what it would alert; saves nothing
 ```
 
 It alerts once per key per day, with a cap of 25 a day, so a script can't flood the chat. It never
@@ -30,7 +30,7 @@ If a source can't be read for 45 minutes in a row, the vigía says so once.
 ## Your apps: `vigia.json`
 
 Each app's schema is private, so this repo doesn't know it. You write the queries in
-`$CENTINELA_PRIVADO/vigia.json` (or the path in `CENTINELA_VIGIA`). Every query is optional;
+`$HACKME_PRIVADO/vigia.json` (or the path in `HACKME_VIGIA`). Every query is optional;
 `{desde}` is replaced with the start of the window. Column names are what the vigía expects.
 
 ```json
@@ -53,11 +53,11 @@ Each app's schema is private, so this repo doesn't know it. You write the querie
 ```
 
 - `conexion` is the **name** of a variable holding the Postgres URL. The URL itself goes in the
-  environment or in `~/.config/centinela/vigia.env` (`VIGIA_PG_SHOP=postgresql://…`), never in a
+  environment or in `~/.config/hackme/vigia.env` (`VIGIA_PG_SHOP=postgresql://…`), never in a
   repo. It is passed to `psql` through `PG*` variables, so it doesn't show up in `ps`.
 - `dominios_propios`: a denied login from your own domain usually means someone who left.
 - `ultima_accion` is optional. Without it, "logs in and does nothing" can't be computed.
-- `umbrales` overrides the defaults in `centinela/vigia.py` (`UMBRALES`).
+- `umbrales` overrides the defaults in `hackme/vigia.py` (`UMBRALES`).
 - `ips_conocidas` names IPs in the alerts ("from 203.0.113.7 (Ana (home))"). It never silences an
   alert: root used from a partner's home is still root.
 
@@ -73,14 +73,14 @@ but can't change anything or read your data.
 
 ```sql
 -- As an admin, once. Generate the password with: openssl rand -base64 32
-CREATE ROLE centinela_lector LOGIN PASSWORD '<generated>' CONNECTION LIMIT 2;
-ALTER ROLE centinela_lector SET default_transaction_read_only = on;
-ALTER ROLE centinela_lector SET statement_timeout = '20s';
-GRANT CONNECT ON DATABASE <db> TO centinela_lector;
-GRANT USAGE ON SCHEMA public TO centinela_lector;
+CREATE ROLE hackme_lector LOGIN PASSWORD '<generated>' CONNECTION LIMIT 2;
+ALTER ROLE hackme_lector SET default_transaction_read_only = on;
+ALTER ROLE hackme_lector SET statement_timeout = '20s';
+GRANT CONNECT ON DATABASE <db> TO hackme_lector;
+GRANT USAGE ON SCHEMA public TO hackme_lector;
 -- Only the tables your queries read; for users, only the columns (no tokens, no secrets).
-GRANT SELECT ON request_log, login_events TO centinela_lector;
-GRANT SELECT (email, role, created_at, last_login_at) ON users TO centinela_lector;
+GRANT SELECT ON request_log, login_events TO hackme_lector;
+GRANT SELECT (email, role, created_at, last_login_at) ON users TO hackme_lector;
 ```
 
 ### AWS
@@ -93,7 +93,7 @@ it can't read S3 objects, databases or secrets, and can't change anything.
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "CentinelaReadOnly",
+      "Sid": "HackmeReadOnly",
       "Effect": "Allow",
       "Action": [
         "guardduty:ListDetectors",
@@ -109,38 +109,38 @@ it can't read S3 objects, databases or secrets, and can't change anything.
 }
 ```
 
-Put its access key in a profile of its own (`aws configure --profile centinela`) and point
-Centinela at it: `CENTINELA_VIGIA_AWS=centinela:us-east-1` (and `CENTINELA_AWS` for the daily
+Put its access key in a profile of its own (`aws configure --profile hackme`) and point
+hackme at it: `HACKME_VIGIA_AWS=hackme:us-east-1` (and `HACKME_AWS` for the daily
 round). Rotate the key every 90 days (CIS AWS 1.13). Don't reuse an admin profile: the vigía runs
 unattended every 15 minutes.
 
 ## Run it every 15 minutes (macOS)
 
-`~/Library/LaunchAgents/com.centinela.vigia.plist`:
+`~/Library/LaunchAgents/com.hackme.vigia.plist`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>com.centinela.vigia</string>
+  <key>Label</key><string>com.hackme.vigia</string>
   <key>ProgramArguments</key>
-  <array><string>/path/to/centinela/bin/centinela</string><string>vigia</string></array>
+  <array><string>/path/to/hackme/bin/hackme</string><string>vigia</string></array>
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
-    <key>CENTINELA_VIGIA_AWS</key><string>centinela:us-east-1</string>
+    <key>HACKME_VIGIA_AWS</key><string>hackme:us-east-1</string>
   </dict>
   <key>StartInterval</key><integer>900</integer>
-  <key>StandardOutPath</key><string>/tmp/centinela-vigia.log</string>
-  <key>StandardErrorPath</key><string>/tmp/centinela-vigia.log</string>
+  <key>StandardOutPath</key><string>/tmp/hackme-vigia.log</string>
+  <key>StandardErrorPath</key><string>/tmp/hackme-vigia.log</string>
 </dict>
 </plist>
 ```
 
 ```bash
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.centinela.vigia.plist
-launchctl bootout gui/$(id -u)/com.centinela.vigia     # to stop it
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.hackme.vigia.plist
+launchctl bootout gui/$(id -u)/com.hackme.vigia     # to stop it
 ```
 
 It only runs while the Mac is on. To watch with the laptop closed, run the same command on a
@@ -149,7 +149,7 @@ with the read-only credentials as secrets).
 
 ## Memory
 
-`$CENTINELA_PRIVADO/memoria/vigia/`: `avisados.json` (keys alerted in the last two days),
+`$HACKME_PRIVADO/memoria/vigia/`: `avisados.json` (keys alerted in the last two days),
 `estado.json` (one week of counts for the baselines, failure streaks), `paises.json` (countries
 seen per account, for A6) and `alertas-YYYY-MM.jsonl` (every alert, for the daily report and the
 program metrics).

@@ -1,6 +1,6 @@
 """Vercel en solo lectura: quién entra a los equipos, qué queda expuesto y qué cambió.
 
-Habla con la API de Vercel por `vercel api` (usa la sesión del CLI, Centinela no toca tokens)
+Habla con la API de Vercel por `vercel api` (usa la sesión del CLI, hackme no toca tokens)
 o, si hay VERCEL_TOKEN en el ambiente (la nube), directo por HTTPS. Nunca pide valores de
 variables: de cada una mira nombre, tipo y ambientes. Nunca cambia nada.
 

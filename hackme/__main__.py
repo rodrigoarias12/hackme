@@ -1,6 +1,6 @@
-"""Centinela — agente de seguridad que solo observa.
+"""hackme — agente de seguridad que solo observa.
 
-uso: bin/centinela <comando>
+uso: bin/hackme <comando>
 
   doctor       chequea lo necesario y dice qué falta (correr primero)
   init         crea el repo privado de informes y memoria si no existe
@@ -54,23 +54,23 @@ def doctor():
         falta |= estado == "falta"
         print(f"  {estado:8} {que:22} {detalle}")
 
-    print(f"centinela doctor (modo {rutas.MODO})")
+    print(f"hackme doctor (modo {rutas.MODO})")
     linea("ok" if sys.version_info >= (3, 11) else "falta", "python >= 3.11", sys.version.split()[0])
     for herramienta in ("git", "rsync", "grep"):
         linea("ok" if shutil.which(herramienta) else "falta", herramienta, shutil.which(herramienta) or "no está en el PATH")
     aguara = _version([rutas.AGUARA, "version"])
     linea("ok" if aguara else "falta", "aguara", f"{rutas.AGUARA} ({aguara})" if aguara else
-          f"no está en {rutas.AGUARA}: go install github.com/garagon/aguara/cmd/aguara@latest, o CENTINELA_AGUARA")
-    linea("ok" if rutas.GITHUB.is_dir() else "falta", "carpeta de repos", f"{rutas.GITHUB} (CENTINELA_GITHUB)")
+          f"no está en {rutas.AGUARA}: go install github.com/garagon/aguara/cmd/aguara@latest, o HACKME_AGUARA")
+    linea("ok" if rutas.GITHUB.is_dir() else "falta", "carpeta de repos", f"{rutas.GITHUB} (HACKME_GITHUB)")
     if rutas.GITHUB.is_dir():
         linea("ok", "repos a revisar", f"{len(rutas.repos())} en modo {rutas.MODO}")
     privado_ok = (rutas.PRIVADO / ".git").is_dir()
-    linea("ok" if privado_ok else "falta", "repo privado", f"{rutas.PRIVADO} (CENTINELA_PRIVADO)"
-          + ("" if privado_ok else " — correr: bin/centinela init"))
+    linea("ok" if privado_ok else "falta", "repo privado", f"{rutas.PRIVADO} (HACKME_PRIVADO)"
+          + ("" if privado_ok else " — correr: bin/hackme init"))
     aws = _version(["aws", "--version"])
     linea("ok" if aws else "opcional", "aws cli", aws or "sin AWS: la ronda saltea GuardDuty/Security Hub/Inspector")
     telegram = all(os.environ.get(k) for k in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")) or \
-        (Path.home() / ".config" / "centinela" / "telegram.env").exists()
+        (Path.home() / ".config" / "hackme" / "telegram.env").exists()
     linea("ok" if telegram else "opcional", "telegram", "configurado" if telegram else
           "sin avisos por Telegram: ver AGENTS.md")
     sys.exit(2 if falta else 0)
@@ -83,7 +83,7 @@ def init():
     if not (rutas.PRIVADO / ".git").is_dir():
         subprocess.run(["git", "init", "-q", "-b", "main", str(rutas.PRIVADO)], check=True)
         (rutas.PRIVADO / "README.md").write_text(
-            "# centinela-privado\n\nInformes y memoria de Centinela. **Nunca hacer público este repo.**\n")
+            "# hackme-privado\n\nInformes y memoria de hackme. **Nunca hacer público este repo.**\n")
     print(f"repo privado listo en {rutas.PRIVADO}. Si lo subís a GitHub, que sea privado.")
 
 

@@ -2,13 +2,13 @@
 
 What a security team watches, taken from published sources (OWASP AppSensor and the Logging
 Vocabulary, MITRE ATT&CK, the CIS AWS Foundations Benchmark, CIS Controls v8, NIST SP 800-55 and
-800-63B, AWS GuardDuty, GitHub and Vercel docs), mapped to what Centinela does or will do.
+800-63B, AWS GuardDuty, GitHub and Vercel docs), mapped to what hackme does or will do.
 
 **Status:** ✅ built · ◐ partly built · ○ planned.
 **Cadence:** `15m` = the vigía (fast watch, planned) · `D` = the daily round · `W` = weekly.
 **Thresholds:** **[S]** comes from the source; **[M]** is a starting point to tune on your own data.
 
-Source keys are listed at the end. Every row alerts **only**: Centinela never blocks.
+Source keys are listed at the end. Every row alerts **only**: hackme never blocks.
 
 ## Before using this list
 
@@ -131,7 +131,7 @@ Source keys are listed at the end. Every row alerts **only**: Centinela never bl
 
 | # | Metric | How to compute it here | Status | Source |
 |---|---|---|---|---|
-| F1 | MTTD (time to detect) | Event time → Centinela alert | ○ | NIST55 §4.4 |
+| F1 | MTTD (time to detect) | Event time → hackme alert | ○ | NIST55 §4.4 |
 | F2 | MTTA (time to acknowledge) | Telegram alert → human reply | ○ | common SOC practice; no standard source verified |
 | F3 | MTTR (time to recover) | Alert → resolved | ○ | NIST55 §4.4 |
 | F4 | Remediation time vs. SLA by severity | First seen → fixed | ○ | NIST55 §3; CIS Controls 7.7 |
