@@ -85,6 +85,16 @@ is worth one line. `baja` findings (stale projects, non-sensitive secrets) go in
 not one per project. If a project's previews are unprotected AND it has production secrets in
 `preview`, say so explicitly: anyone with a preview URL reaches production data.
 
+## 4c. Audit yourself (`bin/hackme huella`)
+
+Run `bin/hackme huella`. It reads the Claude Code session logs of every hackme run in the last
+26 hours (yesterday's round, and this one up to now) and checks what the agent actually did against
+the hard rules: writes outside the two repos, secrets touched, changes in AWS/Vercel/GitHub, data
+sent to unknown hosts, uninstalls or blocking. It saves one JSON per session in
+`$HACKME_PRIVADO/huellas/`. Any `alta` finding goes at the very top of the report, with the exact
+command, and is notified: an agent that broke its own rules is the most serious thing a round can
+find. `media` and `info` go in a short "Huella" section. It is heuristic: it marks for review.
+
 ## 5. Write the report
 
 `$HACKME_PRIVADO/informes/YYYY-MM-DD-<modo>.md`:
@@ -98,7 +108,7 @@ not one per project. If a project's previews are unprotected AND it has producti
 
 ## 6. Save
 
-`git -C "$HACKME_PRIVADO" add informes memoria && git commit -m "hackme <modo> YYYY-MM-DD: <short summary>"`
+`git -C "$HACKME_PRIVADO" add informes memoria huellas && git commit -m "hackme <modo> YYYY-MM-DD: <short summary>"`
 and push if it has a remote. If the push is rejected because of remote changes, `pull --rebase`
 and retry once.
 

@@ -25,6 +25,7 @@ so you can keep the ones you need and add your own. See
 - [How it works](#how-it-works)
 - [What it watches](#what-it-watches)
 - [Vigía: the 15-minute watch](#vigía-the-15-minute-watch)
+- [It audits itself](#it-audits-itself)
 - [Install](#install)
 - [Run it every day](#run-it-every-day)
 - [Telegram](#telegram)
@@ -102,6 +103,24 @@ bin/hackme vigia               every 15 min (launchd on the Mac)
 
 Deterministic, no AI. Setup, the query format, the read-only users for Postgres and AWS, and the
 launchd job: [docs/vigia.md](docs/vigia.md).
+
+## It audits itself
+
+A security agent should be checked like anything else. Every round runs `bin/hackme huella`: it
+reads the Claude Code session logs of the last 26 hours (every command the agent ran, every file it
+read or wrote, everything it sent) and checks them against the hard rules:
+
+| Rule | What breaks it |
+|---|---|
+| Writes only in its two repos | a write, a `git commit` or a `rm` anywhere else |
+| Never touches secrets | opening a `.env`, `~/.aws/credentials`, keys; `--no-redact`; `vercel env pull` |
+| Changes nothing | an `aws` call that isn't describe/list/get, a `vercel` or `gh` command that writes |
+| Talks only to known hosts | a request to a host outside Telegram and the APIs it reads |
+| Never blocks | uninstalls, `aguara clean`, enforce modes |
+
+The result goes to the private repo (`huellas/`) and any serious finding goes at the top of the
+report and to Telegram. It's heuristic (it reads commands as text), so it marks for review. Tools
+that go through MCP can also be recorded with [oktsec](https://www.oktsec.com) in observe mode.
 
 ## Install
 
@@ -202,6 +221,7 @@ bin/hackme aguara       Aguara scan only
 bin/hackme aws          AWS findings only
 bin/hackme vercel       Vercel only
 bin/hackme vigia        the 15-minute watch (--sin-avisar: print only, save nothing)
+bin/hackme huella       what the agent did in the last 26 h, checked against its rules
 bin/avisar "message"       send a Telegram message
 bin/preparar-nube          download and verify Aguara in a cloud session
 ```
@@ -276,6 +296,7 @@ hackme-privado/         private repo: never public
   memoria/<modo>/          what each source already saw
   memoria/vigia/           the vigía's alerts, baselines and countries seen
   vigia.json               the vigía's queries for your apps
+  huellas/                 what each run of the agent did, checked against the rules
 ```
 
 ## Ground rules

@@ -12,6 +12,8 @@ uso: bin/hackme <comando>
   vercel       solo Vercel: equipo, variables, previews, firewall y auditoría
   vigia        la guardia de 15 minutos: ataques en curso, avisa por Telegram
                (--sin-avisar: imprime lo que avisaría y no guarda nada)
+  huella       qué hizo el agente en las últimas 26 h, contra sus reglas
+               (o pasale archivos .jsonl de sesiones de Claude Code)
 
 Configuración por variables de entorno: ver AGENTS.md. Códigos de salida: 0 ok,
 1 error, 2 falta algo (doctor).
@@ -110,6 +112,9 @@ def main(args):
     elif comando == "vercel":
         from . import vercel
         print(vercel.resumen(vercel.correr()))
+    elif comando == "huella":
+        from . import huella
+        print(huella.resumen(huella.correr([a for a in args[1:] if not a.startswith("-")] or None)))
     elif comando == "vigia":
         from . import vigia
         print(vigia.resumen(vigia.correr(enviar="--sin-avisar" not in args)))

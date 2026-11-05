@@ -70,7 +70,8 @@ requirement (`doctor`) or Telegram not configured (`bin/avisar`).
 - Python 3.11+, **stdlib only**. No dependencies to install.
 - Layout: `hackme/inventario.py` (inventory), `aguara.py` (scan), `radar.py` (advisory
   matching), `aws.py` (AWS findings), `vercel.py` (Vercel teams, env var hygiene, previews,
-  firewall, audit events), `vigia.py` (the 15-minute watch; detections are pure functions),
+  firewall, audit events), `vigia.py` (the 15-minute watch; detections are pure functions), `huella.py` (audits what the
+  agent did, from the Claude Code session logs, against these rules),
   `avisar.py` (Telegram), `memoria.py` (new/seen per source), `ronda.py` (glue), `rutas.py`
   (all paths and knobs).
 - Vercel env vars: only `key`, `type` and `target` are ever read. Never request `decrypt`.

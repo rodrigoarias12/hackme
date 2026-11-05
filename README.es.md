@@ -23,6 +23,7 @@ documentada: te quedás con las que necesitás y sumás las tuyas. Ver
 - [Cómo funciona](#cómo-funciona)
 - [Qué mira](#qué-mira)
 - [Vigía: la guardia de 15 minutos](#vigía-la-guardia-de-15-minutos)
+- [Se audita a sí mismo](#se-audita-a-sí-mismo)
 - [Instalar](#instalar)
 - [Que corra todos los días](#que-corra-todos-los-días)
 - [Telegram](#telegram)
@@ -100,6 +101,26 @@ bin/hackme vigia               cada 15 min (launchd en la Mac)
 
 Determinístico, sin IA. Cómo se configura, el formato de las consultas, los usuarios de solo
 lectura para Postgres y AWS, y la tarea de launchd: [docs/vigia.md](docs/vigia.md).
+
+## Se audita a sí mismo
+
+A un agente de seguridad hay que revisarlo como a cualquier otra cosa. Cada ronda corre
+`bin/hackme huella`: lee los registros de las sesiones de Claude Code de las últimas 26 horas (cada
+comando que corrió el agente, cada archivo que leyó o escribió, todo lo que mandó) y los compara
+con sus reglas:
+
+| Regla | Qué la rompe |
+|---|---|
+| Escribe solo en sus dos repos | una escritura, un `git commit` o un `rm` en cualquier otro lado |
+| Nunca toca secretos | abrir un `.env`, `~/.aws/credentials`, claves; `--no-redact`; `vercel env pull` |
+| No cambia nada | una llamada de `aws` que no sea describe/list/get, un comando de `vercel` o `gh` que escribe |
+| Solo habla con hosts conocidos | un pedido a un host fuera de Telegram y de las APIs que lee |
+| Nunca bloquea | desinstalar, `aguara clean`, modos que bloquean |
+
+El resultado queda en el repo privado (`huellas/`) y cualquier hallazgo grave va arriba de todo del
+informe y a Telegram. Es heurístico (lee los comandos como texto), así que marca para revisar. Las
+herramientas que pasan por MCP también se pueden registrar con [oktsec](https://www.oktsec.com) en
+modo observación.
 
 ## Instalar
 
@@ -201,6 +222,7 @@ bin/hackme aguara       solo el escaneo con Aguara
 bin/hackme aws          solo los hallazgos de AWS
 bin/hackme vercel       solo Vercel
 bin/hackme vigia        la guardia de 15 minutos (--sin-avisar: solo imprime, no guarda)
+bin/hackme huella       qué hizo el agente en las últimas 26 h, contra sus reglas
 bin/avisar "mensaje"       manda un mensaje por Telegram
 bin/preparar-nube          baja y verifica Aguara en una sesión en la nube
 ```
@@ -275,6 +297,7 @@ hackme-privado/         repo privado: nunca público
   memoria/<modo>/          lo que cada fuente ya vio
   memoria/vigia/           avisos del vigía, líneas de base y países vistos
   vigia.json               las consultas del vigía para tus apps
+  huellas/                 qué hizo cada corrida del agente, contra las reglas
 ```
 
 ## Reglas de base
