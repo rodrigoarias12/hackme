@@ -115,3 +115,26 @@ that never expire, too many owners, unprotected previews, variables exposed to t
 ```
 
 Matched text is never included: Aguara redacts credential matches and hackme drops the context.
+
+`caminos` (built at the end of the round from all sources):
+
+```jsonc
+"caminos": {
+  "primera_corrida": false,
+  "abiertos": [
+    {
+      "id": "aws:<account>:base-desde-internet",
+      "joya": "Base de datos de producción",      // what the attacker gets
+      "titulo": "Desde internet, directo a la base",
+      "pasos": [{ "que": "…", "evidencia": "…", "fuente": "Security Hub RDS.46" }],
+      "corte": "…",                              // the fix that breaks the chain
+      "severidad": "crítica" | "alta" | "media",
+      "recorrido": true,                         // someone already walked it
+      "estado": "nuevo" | "visto" | "línea de base"
+    }
+  ],
+  "cerrados": [{ "id": "…", "titulo": "…", "joya": "…" }]   // open last round, gone now
+}
+```
+
+A source that didn't run (expired credentials) never closes its paths.

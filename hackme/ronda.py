@@ -7,7 +7,7 @@ que el agente de la tarea programada lo lea de un solo archivo.
 import datetime
 import json
 
-from . import aguara, aws, radar, rutas, vercel
+from . import aguara, aws, caminos, radar, rutas, vercel
 
 
 def correr(inv):
@@ -36,6 +36,8 @@ def correr(inv):
         "aws": nube_aws,
         "vercel": vc,
     }
+    # Al final: los caminos de ataque se arman con lo que juntaron todas las fuentes.
+    ronda["caminos"] = caminos.correr(ronda)
     (rutas.ESTADO / "ronda.json").write_text(json.dumps(ronda, ensure_ascii=False, indent=1))
     return "\n".join([radar.resumen(rd), aguara.resumen(ag), aws.resumen(nube_aws), vercel.resumen(vc),
-                      f"-> {rutas.ESTADO / 'ronda.json'}"])
+                      caminos.resumen(ronda["caminos"]), f"-> {rutas.ESTADO / 'ronda.json'}"])

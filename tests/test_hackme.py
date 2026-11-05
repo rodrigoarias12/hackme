@@ -324,6 +324,54 @@ class Huella(unittest.TestCase):
         self.assertEqual(r["sesiones"][0]["hallazgos"][0]["regla"], "cambios")
 
 
+class Caminos(unittest.TestCase):
+    """Los caminos de ataque se arman solo con evidencia, y la memoria avisa los nuevos y los cerrados."""
+
+    def ronda(self, base_publica=True, login=False, sin_mfa=True, aws_error=False):
+        hallazgos = []
+        if base_publica:
+            hallazgos.append({"servicio": "Security Hub", "control": "RDS.46", "recurso": "db-prod"})
+        if login:
+            hallazgos.append({"servicio": "GuardDuty", "tipo": "CredentialAccess:RDS/MaliciousIPCaller.SuccessfulLogin", "ips": ["9.9.9.9"]})
+        vercel = [{"id": "vercel:eq:app:compartidas", "recurso": "app", "detalle": {"variables": ["DATABASE_URL"]}}]
+        if sin_mfa:
+            vercel.append({"id": "vercel:eq:chequeo:members-no-mfa", "recurso": "eq", "detalle": {"cantidad": 1, "ejemplos": ["ana"]}})
+        cuenta = {"cuenta": "1", "hallazgos": hallazgos, "errores": {"credenciales": "vencida"} if aws_error else {}}
+        return {"aws": {"cuentas": [cuenta]}, "vercel": {"hallazgos": vercel}, "aguara": {}, "radar": {}}
+
+    def test_arma_caminos_con_evidencia(self):
+        from hackme import caminos
+        ids = {c["id"]: c for c in caminos.armar(self.ronda())}
+        self.assertEqual(set(ids), {"aws:1:base-desde-internet", "vercel:base-por-una-compu", "vercel:equipo-sin-mfa"})
+        self.assertEqual(ids["vercel:equipo-sin-mfa"]["pasos"][0]["evidencia"], "ana")
+
+    def test_un_login_exitoso_lo_vuelve_critico(self):
+        from hackme import caminos
+        c = next(c for c in caminos.armar(self.ronda(login=True)) if c["id"].endswith("base-desde-internet"))
+        self.assertTrue(c["recorrido"])
+        self.assertEqual(c["severidad"], "crítica")
+
+    def test_sin_evidencia_no_hay_camino(self):
+        from hackme import caminos
+        self.assertEqual(caminos.armar({"aws": {"cuentas": []}, "vercel": {"hallazgos": []}}), [])
+
+    def test_nuevos_cerrados_y_fuentes_que_no_corrieron(self):
+        from hackme import caminos
+        antes = rutas.MEMORIA
+        with tempfile.TemporaryDirectory() as d:
+            rutas.MEMORIA = Path(d)
+            try:
+                self.assertTrue(caminos.correr(self.ronda(sin_mfa=False))["primera_corrida"])
+                r = caminos.correr(self.ronda(sin_mfa=True))
+                self.assertEqual([c["id"] for c in r["abiertos"] if c["estado"] == "nuevo"], ["vercel:equipo-sin-mfa"])
+                r = caminos.correr(self.ronda(sin_mfa=False, aws_error=True))
+                self.assertEqual([c["id"] for c in r["cerrados"]], ["vercel:equipo-sin-mfa"])  # AWS no corrió: su camino no se cierra
+                r = caminos.correr(self.ronda(sin_mfa=False))
+                self.assertIn("aws:1:base-desde-internet", [c["id"] for c in r["abiertos"] if c["estado"] == "visto"])
+            finally:
+                rutas.MEMORIA = antes
+
+
 class Secretos(unittest.TestCase):
     def test_el_espejo_excluye_secretos(self):
         for patron in (".env", ".env.*", "*.pem", "*.key", "id_rsa*", "credentials*.json"):

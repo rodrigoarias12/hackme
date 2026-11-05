@@ -85,6 +85,33 @@ is worth one line. `baja` findings (stale projects, non-sensitive secrets) go in
 not one per project. If a project's previews are unprotected AND it has production secrets in
 `preview`, say so explicitly: anyone with a preview URL reaches production data.
 
+## 4b2. Attack paths (`ronda.caminos`)
+
+Think like someone who wants in. `ronda.caminos.abiertos` are concrete chains from an entry point to
+something valuable (the production database, the AWS account, Vercel's production secrets, the
+code), each step backed by a finding, each with the fix that cuts it. Every day:
+- A path with `recorrido: true` (someone already walked it: a successful login from a malicious IP,
+  credentials used like an attacker would) goes first in the report and is notified, unless an
+  earlier report already explained it (for example, the owner confirmed it was a teammate).
+- `nuevo` paths: one line each in "Affects you", notified. `cerrados`: one line under a "Closed"
+  heading: the owner should see progress.
+- Verify before you assert: read the evidence behind each step (is that database really
+  production? does that variable really hold a production credential?) and drop a step you can't
+  back up.
+
+**On Mondays, or when the owner asks for an audit,** write
+`$HACKME_PRIVADO/informes/YYYY-MM-DD-auditoria.md` instead of a one-line summary:
+1. What is worth stealing here, in one short list.
+2. Every open path, step by step, with the evidence you checked and how hard each step is.
+3. Paths the rules didn't build but you can back with evidence from this round (mark them
+   "propuesto por el agente").
+4. The fixes in order: the one that cuts the most paths, or the most valuable target, first; say
+   who can do each (the owner, a teammate, the cloud provider).
+5. What closed since the last audit.
+
+Never test a path against a live system to prove it. Proposing a test (on staging, with the
+owner's OK) is fine.
+
 ## 4c. Audit yourself (`bin/hackme huella`)
 
 Run `bin/hackme huella`. It reads the Claude Code session logs of every hackme run in the last

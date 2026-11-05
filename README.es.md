@@ -23,6 +23,7 @@ documentada: te quedás con las que necesitás y sumás las tuyas. Ver
 - [Cómo funciona](#cómo-funciona)
 - [Qué mira](#qué-mira)
 - [Vigía: la guardia de 15 minutos](#vigía-la-guardia-de-15-minutos)
+- [Caminos de ataque](#caminos-de-ataque)
 - [Se audita a sí mismo](#se-audita-a-sí-mismo)
 - [Instalar](#instalar)
 - [Que corra todos los días](#que-corra-todos-los-días)
@@ -101,6 +102,24 @@ bin/hackme vigia               cada 15 min (launchd en la Mac)
 
 Determinístico, sin IA. Cómo se configura, el formato de las consultas, los usuarios de solo
 lectura para Postgres y AWS, y la tarea de launchd: [docs/vigia.md](docs/vigia.md).
+
+## Caminos de ataque
+
+Una lista de hallazgos no te dice cómo te entran. En cada ronda, hackme parte de lo que quiere un
+atacante (la base de producción, la cuenta de AWS, los secretos de producción en Vercel, el
+código) y arma cadenas concretas con lo que encontró, cada paso con su evidencia:
+
+> **Base de producción ← desde internet, directo**
+> la base se puede alcanzar desde internet (Security Hub RDS.46) → IPs con mala reputación ya la
+> tantean (GuardDuty) → un login de una de ellas funcionó (GuardDuty) · *se corta: sacarla de la
+> subred pública y rotar la contraseña de ese usuario*
+
+Cada camino dice qué arreglo lo corta. La ronda avisa cuando **se abre** un camino y cuando **se
+cierra** uno, y un camino que alguien ya recorrió (un login exitoso desde una IP maliciosa) va
+primero. Los lunes, o cuando lo pedís, el agente escribe la auditoría completa: qué vale la pena
+robar, cada camino con la evidencia que revisó, los caminos que encontró más allá de las reglas y
+los arreglos en orden. Nunca prueba un camino contra un sistema en vivo. `bin/hackme caminos` los
+vuelve a armar con la última ronda.
 
 ## Se audita a sí mismo
 
@@ -222,6 +241,7 @@ bin/hackme aguara       solo el escaneo con Aguara
 bin/hackme aws          solo los hallazgos de AWS
 bin/hackme vercel       solo Vercel
 bin/hackme vigia        la guardia de 15 minutos (--sin-avisar: solo imprime, no guarda)
+bin/hackme caminos      caminos de ataque a lo más valioso, con la última ronda
 bin/hackme huella       qué hizo el agente en las últimas 26 h, contra sus reglas
 bin/avisar "mensaje"       manda un mensaje por Telegram
 bin/preparar-nube          baja y verifica Aguara en una sesión en la nube

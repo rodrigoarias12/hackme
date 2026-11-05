@@ -25,6 +25,7 @@ so you can keep the ones you need and add your own. See
 - [How it works](#how-it-works)
 - [What it watches](#what-it-watches)
 - [Vigía: the 15-minute watch](#vigía-the-15-minute-watch)
+- [Attack paths](#attack-paths)
 - [It audits itself](#it-audits-itself)
 - [Install](#install)
 - [Run it every day](#run-it-every-day)
@@ -103,6 +104,23 @@ bin/hackme vigia               every 15 min (launchd on the Mac)
 
 Deterministic, no AI. Setup, the query format, the read-only users for Postgres and AWS, and the
 launchd job: [docs/vigia.md](docs/vigia.md).
+
+## Attack paths
+
+A list of findings doesn't tell you how someone gets in. Every round, hackme starts from what an
+attacker wants (the production database, the AWS account, Vercel's production secrets, the code)
+and builds concrete chains from what it found, each step backed by evidence:
+
+> **Production database ← from the internet, directly**
+> the database is reachable from the internet (Security Hub RDS.46) → IPs with a bad reputation
+> already probe it (GuardDuty) → a login from one of them succeeded (GuardDuty) · *cut: take it off
+> the public subnet and rotate that user's password*
+
+Each path says which fix cuts it. The round tells you when a path **opens** and when one
+**closes**, and a path someone already walked (a successful login from a malicious IP) goes first.
+On Mondays, or when you ask, the agent writes a full audit: what's worth stealing, every path with
+the evidence it checked, paths it found beyond the rules, and the fixes in order. It never tests a
+path against a live system. `bin/hackme caminos` rebuilds them from the last round.
 
 ## It audits itself
 
@@ -221,6 +239,7 @@ bin/hackme aguara       Aguara scan only
 bin/hackme aws          AWS findings only
 bin/hackme vercel       Vercel only
 bin/hackme vigia        the 15-minute watch (--sin-avisar: print only, save nothing)
+bin/hackme caminos      attack paths to what's valuable, from the last round
 bin/hackme huella       what the agent did in the last 26 h, checked against its rules
 bin/avisar "message"       send a Telegram message
 bin/preparar-nube          download and verify Aguara in a cloud session

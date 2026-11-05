@@ -12,6 +12,7 @@ uso: bin/hackme <comando>
   vercel       solo Vercel: equipo, variables, previews, firewall y auditoría
   vigia        la guardia de 15 minutos: ataques en curso, avisa por Telegram
                (--sin-avisar: imprime lo que avisaría y no guarda nada)
+  caminos      caminos de ataque a lo más valioso, con la última ronda
   huella       qué hizo el agente en las últimas 26 h, contra sus reglas
                (o pasale archivos .jsonl de sesiones de Claude Code)
 
@@ -112,6 +113,12 @@ def main(args):
     elif comando == "vercel":
         from . import vercel
         print(vercel.resumen(vercel.correr()))
+    elif comando == "caminos":
+        from . import caminos
+        ronda = json.loads((rutas.ESTADO / "ronda.json").read_text())
+        ronda["caminos"] = caminos.correr(ronda)
+        (rutas.ESTADO / "ronda.json").write_text(json.dumps(ronda, ensure_ascii=False, indent=1))
+        print(caminos.resumen(ronda["caminos"]))
     elif comando == "huella":
         from . import huella
         print(huella.resumen(huella.correr([a for a in args[1:] if not a.startswith("-")] or None)))
