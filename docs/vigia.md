@@ -47,7 +47,8 @@ Each app's schema is private, so this repo doesn't know it. You write the querie
       "cuentas": "SELECT email AS cuenta, role AS rol, created_at AS creada, last_login_at AS ultimo_login, last_action_at AS ultima_accion FROM users WHERE role <> 'none'",
       "umbrales": { "rutas_por_ip": 30 }
     }
-  ]
+  ],
+  "ips_conocidas": { "203.0.113.7": "Ana (home)" }
 }
 ```
 
@@ -57,6 +58,8 @@ Each app's schema is private, so this repo doesn't know it. You write the querie
 - `dominios_propios`: a denied login from your own domain usually means someone who left.
 - `ultima_accion` is optional. Without it, "logs in and does nothing" can't be computed.
 - `umbrales` overrides the defaults in `centinela/vigia.py` (`UMBRALES`).
+- `ips_conocidas` names IPs in the alerts ("from 203.0.113.7 (Ana (home))"). It never silences an
+  alert: root used from a partner's home is still root.
 
 Every query runs inside `BEGIN TRANSACTION READ ONLY` with a 20 s timeout. Use a read-only user
 anyway (below): defense in depth.

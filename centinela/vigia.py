@@ -572,6 +572,14 @@ def correr(enviar=True, ahora=None):
             leido.append(f"{fuente} {len(eventos)} eventos, {len(hallazgos)} guardduty")
             alertas += detectar_cloudtrail(cuenta, eventos, UMBRALES) + detectar_guardduty(cuenta, hallazgos)
 
+    # IPs conocidas: se nombran en el aviso, pero se avisa igual (root desde la casa de un socio
+    # sigue siendo root).
+    for ip, quien in cfg.get("ips_conocidas", {}).items():
+        patron = re.compile(rf"(?<![\d.]){re.escape(ip)}(?!\.?\d)")  # "1.2.3.4." sí, "1.2.3.45" no
+        for a in alertas:
+            for campo in ("titulo", "detalle"):
+                a[campo] = patron.sub(f"{ip} ({quien})", a[campo])
+
     # Una vez por clave por día, y con tope. Los días viejos se olvidan.
     avisados = {d: v for d, v in _cargar("avisados.json", {}).items() if d >= (ahora - dt.timedelta(days=2)).date().isoformat()}
     hoy_avisados = avisados.setdefault(hoy, [])

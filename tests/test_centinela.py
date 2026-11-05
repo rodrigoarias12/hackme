@@ -236,6 +236,24 @@ class Vigia(unittest.TestCase):
         self.assertEqual(len(alertas), 1)
         self.assertIn("2 IPs", alertas[0]["detalle"])
 
+    def test_ips_conocidas_se_nombran_y_se_avisa_igual(self):
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            cfg = Path(d) / "vigia.json"
+            cfg.write_text(json.dumps({"apps": [], "ips_conocidas": {"1.2.3.4": "Ana"}}))
+            eventos = [{"eventName": "StopLogging", "userIdentity": {"type": "Root"}, "sourceIPAddress": "1.2.3.4"},
+                       {"eventName": "StopLogging", "userIdentity": {"type": "Root"}, "sourceIPAddress": "1.2.3.45"}]
+            impreso = []
+            with mock.patch.object(self.v, "CONFIG", cfg), mock.patch.object(self.v, "MEMORIA", Path(d) / "m"), \
+                 mock.patch.object(self.v, "leer_aws", return_value=("1", eventos, [])), \
+                 mock.patch.object(self.v.shutil, "which", return_value="/bin/aws"), \
+                 mock.patch.dict(os.environ, {"CENTINELA_VIGIA_AWS": "p:r"}), \
+                 mock.patch("builtins.print", side_effect=lambda *a, **k: impreso.append(" ".join(map(str, a)))):
+                self.v.correr(enviar=False)
+            texto = "\n".join(impreso)
+            self.assertIn("1.2.3.4 (Ana).", texto)
+            self.assertNotIn("1.2.3.45 (Ana)", texto)
+
     def test_guardduty_baja_no_listada_no_avisa(self):
         self.assertEqual(self.v.detectar_guardduty("1", [{"Type": "Recon:EC2/Portscan", "Severity": 2}]), [])
 
