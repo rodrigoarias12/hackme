@@ -97,7 +97,10 @@ code. Everything is regenerated each round; what must persist lives in
 Checks: pending team access requests and new members, secret-looking variables with a public
 prefix, `plain` secrets, production secrets also in `development`, production secrets not
 `sensitive`, unprotected previews and disabled firewall on projects with a custom domain, stale
-published projects, and audit events (`env pull`, variables added, member changes, blocked deploys).
+published projects, audit events (`env pull`, variables added, member changes, blocked deploys), and
+Vercel's own `vercel security check` (ids `vercel:<team>:chequeo:<check>`: members without MFA, tokens
+that never expire, too many owners, unprotected previews, variables exposed to the browser) with
+`detalle` = `{cantidad, de, ejemplos, truncado}`; `ejemplos` are labels (user, project, variable name).
 
 `Hallazgo` (Aguara):
 

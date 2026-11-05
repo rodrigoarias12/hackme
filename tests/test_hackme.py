@@ -168,6 +168,24 @@ class VariablesDeVercel(unittest.TestCase):
         envs = [{"key": "API_KEY", "type": "plain", "target": ["production"], "value": "no-deberia-aparecer"}]
         self.assertNotIn("no-deberia-aparecer", json.dumps(self.hallazgos(envs)))
 
+    def test_chequeo_de_vercel(self):
+        from unittest import mock
+        from hackme import vercel
+        reporte = {"report": {
+            "members-no-mfa": {"violationsCount": 1, "totalCount": 3, "samples": [{"id": "u1", "label": "ana"}]},
+            "members-too-many-owners": {"violationsCount": 0, "totalCount": 3, "samples": []},
+            "algo-nuevo": {"violationsCount": 2, "samples": []}}}
+        salida = mock.Mock(returncode=0, stdout=json.dumps(reporte), stderr="")
+        hallazgos = []
+        with mock.patch.object(vercel.shutil, "which", return_value="/bin/vercel"), \
+             mock.patch.object(vercel.subprocess, "run", return_value=salida):
+            vercel._chequeo("equipo", hallazgos)
+        por_id = {h["id"]: h for h in hallazgos}
+        self.assertEqual(set(por_id), {"vercel:equipo:chequeo:members-no-mfa", "vercel:equipo:chequeo:algo-nuevo"})
+        mfa = por_id["vercel:equipo:chequeo:members-no-mfa"]
+        self.assertEqual((mfa["severidad"], mfa["detalle"]), ("alta", {"cantidad": 1, "ejemplos": ["ana"], "de": 3}))
+        self.assertEqual(por_id["vercel:equipo:chequeo:algo-nuevo"]["severidad"], "media")
+
 
 class Vigia(unittest.TestCase):
     """Las detecciones son funciones puras: filas -> alertas."""

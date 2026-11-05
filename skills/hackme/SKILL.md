@@ -79,7 +79,8 @@ error, say so (for example "session expired: run `aws login --profile <name>`").
 
 Read only; variable values are never fetched. Report `nuevo`/`actualizado` findings above
 `info`. Always at the top, even if not new: a **pending access request** to a team (ask "do you
-know this person?") and a **new team member**. An `env pull` by someone the owner didn't expect
+know this person?"), a **new team member**, and from Vercel's own check (`…:chequeo:…`) any **member
+without MFA** or **token that never expires** (say who; they fix it in their own account). An `env pull` by someone the owner didn't expect
 is worth one line. `baja` findings (stale projects, non-sensitive secrets) go in one grouped line,
 not one per project. If a project's previews are unprotected AND it has production secrets in
 `preview`, say so explicitly: anyone with a preview URL reaches production data.

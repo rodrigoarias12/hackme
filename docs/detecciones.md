@@ -115,13 +115,13 @@ Source keys are listed at the end. Every row alerts **only**: hackme never block
 | # | KPI | Signal | Threshold | Status | Source |
 |---|---|---|---|---|---|
 | E1 | Dormant accounts, and accounts that log in but do nothing | Last login and last real action per user; Google `lastLoginTime` | [S] 45 days with no activity. [M] idle: sessions but zero business actions in 30 days | ✅ D (vigía) | CIS Controls 5.3 |
-| E2 | Accounts without MFA | Google `isEnrolledIn2Sv`; IAM credential report `mfa_active`; GitHub org 2FA | target 0 | ○ | CIS Controls 6.3, 6.5; CIS v5 1.9 / IAM.5 |
+| E2 | Accounts without MFA | Google `isEnrolledIn2Sv`; IAM credential report `mfa_active`; GitHub org 2FA | target 0 | ◐ Vercel only (`vercel security check`), D | CIS Controls 6.3, 6.5; CIS v5 1.9 / IAM.5 |
 | E3 | AWS root hygiene | Root access key, root MFA, hardware MFA | 0 deviations | ◐ via Security Hub | CIS v5 1.3–1.5 (IAM.4, IAM.9, IAM.6) |
 | E4 | Stale access keys | Credential report `access_key_N_last_rotated`; > 1 active key | [S] > 90 days; > 1 key | ○ | CIS v5 1.13 / IAM.3; 1.12 |
 | E5 | Unused credentials | `password_last_used`, `access_key_N_last_used_date` | [S] ≥ 45 days | ○ | CIS v5 1.11 / IAM.22 |
 | E6 | Offboarding drift | People in GitHub, Vercel, AWS or the app who are missing or suspended in the directory | 0. [S] at least quarterly; [M] daily | ○ | CIS Controls 6.2, 5.1 |
 | E7 | Privileged account count | Google admins, GitHub owners, Vercel owners, IAM `*:*` | [M] alert on any increase | ○ | CIS Controls 5.4, 6.8; CIS v5 1.14, 1.15 |
-| E8 | Non-human access inventory | PATs, all-repo apps, deploy keys, outside collaborators, IAM keys | [S] review quarterly | ○ | CIS Controls 5.5 |
+| E8 | Non-human access inventory | PATs, all-repo apps, deploy keys, outside collaborators, IAM keys | [S] review quarterly | ◐ Vercel only (`vercel security check`), D | CIS Controls 5.5 |
 | E9 | Logging coverage and retention | CloudTrail multi-region and validation, Config, flow logs, drains per Vercel project | [S] retention ≥ 90 days; GitHub keeps only 180, so export it | ○ | CIS v5 3.1–3.9; CIS Controls 8.2, 8.9, 8.10 |
 | E10 | Infra posture drift | Public or unencrypted RDS; ports open to the world | 0 failing controls | ◐ via Security Hub | CIS v5 2.2.1–2.2.3, 5.2–5.4 |
 | E11 | Repo security coverage | Branch protection, secret scanning, Dependabot on every repo | [M] 100% | ○ | GH-WH (`security_and_analysis`) |

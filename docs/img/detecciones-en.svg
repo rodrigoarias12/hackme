@@ -177,8 +177,8 @@ text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
 <text x="24" y="313" font-size="12" class="t-mono t-muted">1 of 12 running</text>
 <rect class="c-ok" x="250" y="282" width="32" height="32" rx="7"/>
 <text x="266.0" y="302" font-size="10" class="t-mono c-t-ok" text-anchor="middle">E1</text>
-<rect class="c-falta" x="288" y="282" width="32" height="32" rx="7"/>
-<text x="304.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E2</text>
+<rect class="c-parcial" x="288" y="282" width="32" height="32" rx="7"/>
+<text x="304.0" y="302" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">E2</text>
 <rect class="c-parcial" x="326" y="282" width="32" height="32" rx="7"/>
 <text x="342.0" y="302" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">E3</text>
 <rect class="c-falta" x="364" y="282" width="32" height="32" rx="7"/>
@@ -189,8 +189,8 @@ text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
 <text x="456.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E6</text>
 <rect class="c-falta" x="478" y="282" width="32" height="32" rx="7"/>
 <text x="494.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E7</text>
-<rect class="c-falta" x="516" y="282" width="32" height="32" rx="7"/>
-<text x="532.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E8</text>
+<rect class="c-parcial" x="516" y="282" width="32" height="32" rx="7"/>
+<text x="532.0" y="302" font-size="10" class="t-mono c-t-parcial" text-anchor="middle">E8</text>
 <rect class="c-falta" x="554" y="282" width="32" height="32" rx="7"/>
 <text x="570.0" y="302" font-size="10" class="t-mono c-t-falta" text-anchor="middle">E9</text>
 <rect class="c-parcial" x="592" y="282" width="32" height="32" rx="7"/>
@@ -222,7 +222,7 @@ text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
 <rect class="c-ok" x="24" y="390" width="16" height="16" rx="4"/>
 <text x="48" y="403" font-size="13" class="t-muted">37 running</text>
 <rect class="c-parcial" x="152.0" y="390" width="16" height="16" rx="4"/>
-<text x="176.0" y="403" font-size="13" class="t-muted">6 partial</text>
+<text x="176.0" y="403" font-size="13" class="t-muted">8 partial</text>
 <rect class="c-falta" x="272.4" y="390" width="16" height="16" rx="4"/>
-<text x="296.4" y="403" font-size="13" class="t-muted">38 to do</text>
+<text x="296.4" y="403" font-size="13" class="t-muted">36 to do</text>
 </svg>

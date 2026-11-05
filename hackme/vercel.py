@@ -12,6 +12,9 @@ Qué mira, pensado como alguien de seguridad:
   - proyectos: previews sin protección (cualquiera con la URL entra), firewall apagado en
     proyectos con dominio propio, proyectos viejos que siguen publicados
   - auditoría: quién bajó variables con `env pull`, variables agregadas, deploys bloqueados
+  - el chequeo de seguridad del propio Vercel (`vercel security check`, solo lectura): miembros
+    sin MFA, tokens que no vencen, demasiados owners, previews sin protección, variables que
+    llegan al navegador. Solo con el CLI logueado.
 """
 import json
 import os
@@ -31,6 +34,19 @@ PREFIJO_PUBLICO = ("NEXT_PUBLIC_", "VITE_", "PUBLIC_", "EXPO_PUBLIC_", "REACT_AP
 EVENTOS = re.compile(r"(env-variable-read:.*pull|env-variable-(add|remove|update)|team-member|token|"
                      r"protection|firewall|integration|deployment-creation-blocked|ai-security-review)")
 VIEJO_DIAS = 180
+
+# `vercel security check`: severidad y título por chequeo. Uno que no esté acá entra como "media".
+CHEQUEOS = {
+    "members-no-mfa": ("alta", "miembros del equipo sin MFA"),
+    "env-vars-exposed-web-app-fwk": ("alta", "variables con nombre de secreto que llegan al navegador"),
+    "pats-no-expiration": ("media", "tokens personales que no vencen"),
+    "members-too-many-owners": ("media", "demasiados owners en el equipo"),
+    "proj-no-preview-depl-protection": ("media", "proyectos con previews sin protección"),
+    "env-vars-creds-instead-of-oidc": ("media", "credenciales fijas donde podría usarse OIDC"),
+    "depl-no-git-fork-protection": ("media", "deploys desde forks sin protección"),
+    "env-vars-non-sensitive": ("baja", "variables no marcadas como sensitive"),
+    "env-vars-non-sensitive-stale": ("baja", "variables no sensitive que no se usan hace tiempo"),
+}
 
 
 def _api(ruta):
@@ -156,6 +172,30 @@ def _auditoria(equipo, slug, desde, hallazgos):
                                    slug, {"veces": len(cuando), "ultima": max(cuando)}))
 
 
+def _chequeo(slug, hallazgos):
+    """El chequeo de seguridad de Vercel para el equipo. Trae etiquetas (usuario, proyecto, nombre
+    de variable), nunca valores."""
+    if not shutil.which("vercel"):
+        return
+    r = subprocess.run(["vercel", "security", "check", "--json", "--non-interactive", "--scope", slug],
+                       capture_output=True, text=True, timeout=180)
+    if r.returncode != 0:
+        raise RuntimeError((r.stderr.strip().splitlines() or [f"exit {r.returncode}"])[-1])
+    for nombre, c in (json.loads(r.stdout).get("report") or {}).items():
+        cantidad = c.get("violationsCount") or 0
+        if not cantidad:
+            continue
+        severidad, titulo = CHEQUEOS.get(nombre, ("media", nombre))
+        ejemplos = [s.get("label") for s in c.get("samples") or [] if s.get("label")]
+        detalle = {"cantidad": cantidad, "ejemplos": ejemplos[:12]}
+        if c.get("totalCount"):
+            detalle["de"] = c["totalCount"]
+        if c.get("truncated"):
+            detalle["truncado"] = True
+        hallazgos.append(_hallazgo(f"vercel:{slug}:chequeo:{nombre}", severidad,
+                                   f"{slug}: {cantidad} {titulo} (chequeo de Vercel)", slug, detalle))
+
+
 def correr():
     if not os.environ.get("VERCEL_TOKEN") and not shutil.which("vercel"):
         return {"hallazgos": [], "dominios": [], "error": "sin VERCEL_TOKEN ni CLI de Vercel"}
@@ -167,12 +207,14 @@ def correr():
     except (RuntimeError, ValueError, OSError) as e:
         return {"hallazgos": [], "dominios": [], "error": str(e)}
     for t in equipos:
-        for paso in (_equipo, _auditoria):
+        for paso in (_equipo, _auditoria, _chequeo):
             try:
                 if paso is _equipo:
                     _equipo(t["id"], t["slug"], hallazgos, dominios)
-                else:
+                elif paso is _auditoria:
                     _auditoria(t["id"], t["slug"], desde, hallazgos)
+                else:
+                    _chequeo(t["slug"], hallazgos)
             except (RuntimeError, ValueError, OSError, subprocess.TimeoutExpired) as e:
                 errores[f"{t['slug']}:{paso.__name__.strip('_')}"] = str(e)[:200]
     # Los miembros confirmados son contexto: solo importan cuando aparecen (estado "nuevo").
