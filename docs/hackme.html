@@ -6,36 +6,23 @@
 <style>
 /* Layout: héroe con radar a la derecha; después cuatro figuras grandes, cada una una idea (cómo fluye, un ataque a escala, qué vigila, dónde se engancha), y las reglas al final. Paleta: petróleo + menta. */
 :root {
-  --bg: #0D2020;
-  --surface: #133030;
-  --surface-2: #183A3A;
-  --line: #2A4E4E;
-  --grid: #1F4040;
-  --fg: #E8F3EF;
-  --muted: #94B3AA;
-  --accent: #6BE386;
-  --accent-ink: #6BE386;
-  --accent-soft: rgba(107, 227, 134, 0.16);
+  /* Siempre en blanco: la página se usa para sacar fotos y tiene que verse igual en cualquier modo. */
+  --bg: #FFFFFF;
+  --surface: #F6FAF8;
+  --surface-2: #EDF5F0;
+  --line: #C9DCD3;
+  --grid: #E3EEE8;
+  --fg: #0D2020;
+  --muted: #4A6560;
+  --accent: #3FCB67;
+  --accent-ink: #18723E;
+  --accent-soft: rgba(63, 203, 103, 0.16);
   --on-accent: #0D2020;
-  --warn: #F2C46B;
-  --alert: #FF8A7A;
+  --warn: #B07510;
+  --alert: #B23A2A;
   --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
   --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  color-scheme: dark;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --bg: #F1F6F3; --surface: #FFFFFF; --surface-2: #E4EFE9; --line: #C3D8CE; --grid: #DCE8E2;
-    --fg: #0D2020; --muted: #4A6560; --accent: #3FCB67; --accent-ink: #18723E;
-    --accent-soft: rgba(63, 203, 103, 0.16); --on-accent: #0D2020; --warn: #B07510; --alert: #B23A2A;
-    color-scheme: light;
-  }
-}
-:root[data-theme="light"] {
-  --bg: #F1F6F3; --surface: #FFFFFF; --surface-2: #E4EFE9; --line: #C3D8CE; --grid: #DCE8E2;
-  --fg: #0D2020; --muted: #4A6560; --accent: #3FCB67; --accent-ink: #18723E;
-  --accent-soft: rgba(63, 203, 103, 0.16); --on-accent: #0D2020; --warn: #B07510; --alert: #B23A2A;
   color-scheme: light;
 }
 
@@ -242,7 +229,7 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
           <line x1="300" y1="66" x2="300" y2="390"/>
         </g>
         <line class="linea" x1="300" y1="140" x2="428" y2="140" marker-end="url(#pf)"/>
-        <text x="312" y="132" font-size="11" class="t-muted">1 vez por día</text>
+        <text x="382" y="132" font-size="11" class="t-muted">1 vez por día</text>
 
         <!-- Vigía: solo AWS y apps -->
         <path class="linea-acc fluye" d="M270 356 H340 V362 H420"/>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>hackme · arquitectura</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  /* Foto para compartir: 1400 × 1180, fondo blanco. Cómo corre hackme como agente en Claude Code. */
+  html, body { margin: 0; background: #FFFFFF; }
+  .foto { width: 1400px; height: 1180px; box-sizing: border-box; padding: 52px 56px 40px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 12px; color: #0D2020; }
+  .marca { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-weight: 700; font-size: 18px; color: #18723E; }
+  .marca i { display: inline-block; width: 10px; height: 16px; background: #6BE386; vertical-align: -2px; margin-left: 2px; }
+  h1 { margin: 0; font-family: "Bricolage Grotesque", "Avenir Next", sans-serif; font-weight: 800; font-size: 46px; letter-spacing: -0.02em; line-height: 1.08; }
+  p { margin: 0; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; font-size: 20px; line-height: 1.45; color: #4A6560; max-width: 66ch; }
+  svg { width: 100%; height: auto; display: block; align-self: center; }
+  .pie { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 13px; color: #4A6560; display: flex; gap: 22px; flex-wrap: wrap; }
+  .pie b { color: #18723E; font-weight: 500; }
+
+  svg text { font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; fill: #0D2020; }
+  svg .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  svg .muted { fill: #4A6560; }
+  svg .acc { fill: #18723E; }
+  svg .warn { fill: #A0680A; }
+  svg .titulo { font-family: "Bricolage Grotesque", "Avenir Next", sans-serif; font-weight: 800; }
+  svg .claro { fill: #FFFFFF; }
+  svg .menta { fill: #6BE386; }
+  svg .caja { fill: #F6FAF8; stroke: #C9DCD3; stroke-width: 1; }
+  svg .caja-b { fill: #FFFFFF; stroke: #C9DCD3; stroke-width: 1; }
+  svg .agente { fill: #F1F9F4; stroke: #3FCB67; stroke-width: 2.5; }
+  svg .modelo { fill: #0D2020; stroke: none; }
+  svg .cli { fill: #F6FAF8; stroke: #0D2020; stroke-width: 1.5; }
+  svg .chip { fill: #FFFFFF; stroke: #C9DCD3; stroke-width: 1; }
+  svg .chip-v { fill: #EAF8EE; stroke: #3FCB67; stroke-width: 1.25; }
+  svg .tele { fill: #F1F9F4; stroke: #3FCB67; stroke-width: 2; }
+  svg .linea { stroke: #7E9A92; stroke-width: 1.6; fill: none; }
+  svg .linea-a { stroke: #3FCB67; stroke-width: 2.4; fill: none; }
+  svg .frontera { stroke: #C98B12; stroke-width: 1.6; stroke-dasharray: 6 6; fill: none; }
+  svg .fp { fill: #7E9A92; }
+  svg .fa { fill: #3FCB67; }
+</style>
+</head>
+<body>
+<div class="foto">
+  <div class="marca">hackme<i></i></div>
+  <div style="display:grid; gap:12px">
+    <h1>Un agente de seguridad que corre en Claude</h1>
+    <p>Claude Code arranca solo cada mañana, lee las reglas y el skill de hackme, corre las herramientas, juzga lo que encontraron y te avisa. El vigía corre aparte, cada 15 minutos, sin IA.</p>
+  </div>
+
+  <svg viewBox="0 0 1320 860" role="img" aria-label="Arquitectura de hackme: tres disparadores arrancan Claude Code, que lee AGENTS.md y el skill y usa el CLI bin/hackme; el CLI lee con permisos de solo lectura Oktsec Radar, Aguara, los repos y la Mac, AWS, Vercel y las bases; escribe informes en un repo privado y avisa por Telegram. launchd corre el vigía cada 15 minutos sin pasar por Claude.">
+    <defs>
+      <marker id="p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="fp" d="M0 0L10 5L0 10z"/></marker>
+      <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="fa" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+
+    <!-- Disparadores -->
+    <text x="30" y="72" font-size="12" class="mono muted" letter-spacing="1.4">CUÁNDO ARRANCA</text>
+    <rect class="caja" x="30" y="88" width="270" height="64" rx="10"/>
+    <text x="48" y="116" font-size="16" font-weight="600">Tarea programada</text>
+    <text x="48" y="138" font-size="13" class="muted">Claude Code en la Mac · 8:30</text>
+    <rect class="caja" x="30" y="168" width="270" height="64" rx="10"/>
+    <text x="48" y="196" font-size="16" font-weight="600">Rutina en la nube</text>
+    <text x="48" y="218" font-size="13" class="muted">Claude · 8:00 · en preparación</text>
+    <rect class="caja" x="30" y="248" width="270" height="64" rx="10"/>
+    <text x="48" y="276" font-size="16" font-weight="600">A mano</text>
+    <text x="48" y="298" font-size="13" class="muted">"corré la ronda de hackme"</text>
+    <g class="linea"><line x1="300" y1="120" x2="328" y2="120"/><line x1="300" y1="200" x2="328" y2="200"/><line x1="300" y1="280" x2="328" y2="280"/><line x1="328" y1="120" x2="328" y2="280"/></g>
+    <line class="linea" x1="328" y1="200" x2="358" y2="200" marker-end="url(#p)"/>
+
+    <rect class="caja" x="30" y="556" width="270" height="64" rx="10"/>
+    <text x="48" y="584" font-size="16" font-weight="600">launchd</text>
+    <text x="48" y="606" font-size="13" class="muted">cada 15 minutos · sin IA</text>
+    <line class="linea-a" x1="300" y1="588" x2="358" y2="588" marker-end="url(#a)"/>
+
+    <!-- Claude Code -->
+    <rect class="agente" x="360" y="80" width="540" height="350" rx="18"/>
+    <text x="386" y="122" font-size="26" class="titulo">Claude Code</text>
+    <text x="874" y="120" font-size="13" class="mono acc" text-anchor="end">el agente</text>
+    <text x="386" y="146" font-size="14" class="muted">Claude, con el skill de hackme cargado</text>
+
+    <rect class="modelo" x="386" y="166" width="236" height="178" rx="14"/>
+    <text x="406" y="200" font-size="22" class="titulo claro">Claude</text>
+    <g font-size="13.5" class="mono">
+      <text x="406" y="232" class="menta">1</text><text x="424" y="232" class="claro">lee las reglas y el skill</text>
+      <text x="406" y="256" class="menta">2</text><text x="424" y="256" class="claro">corre la ronda</text>
+      <text x="406" y="280" class="menta">3</text><text x="424" y="280" class="claro">juzga cada caso</text>
+      <text x="406" y="304" class="menta">4</text><text x="424" y="304" class="claro">escribe el informe</text>
+      <text x="406" y="328" class="menta">5</text><text x="424" y="328" class="claro">avisa lo nuevo</text>
+    </g>
+
+    <rect class="caja-b" x="646" y="166" width="230" height="54" rx="10"/>
+    <text x="662" y="190" font-size="14.5" class="mono" font-weight="700">AGENTS.md</text>
+    <text x="662" y="209" font-size="12.5" class="muted">reglas que no se negocian</text>
+    <rect class="caja-b" x="646" y="230" width="230" height="54" rx="10"/>
+    <text x="662" y="254" font-size="14.5" class="mono" font-weight="700">SKILL.md</text>
+    <text x="662" y="273" font-size="12.5" class="muted">cómo juzgar y qué avisar</text>
+    <line class="linea" x1="646" y1="193" x2="626" y2="193" marker-end="url(#p)"/>
+    <line class="linea" x1="646" y1="257" x2="626" y2="257" marker-end="url(#p)"/>
+
+    <text x="646" y="314" font-size="12" class="mono muted" letter-spacing="1.2">HERRAMIENTAS</text>
+    <g font-size="12.5" class="mono" text-anchor="middle">
+      <rect class="chip" x="646" y="322" width="70" height="26" rx="13"/><text x="681" y="339.5">Bash</text>
+      <rect class="chip" x="726" y="322" width="70" height="26" rx="13"/><text x="761" y="339.5">Read</text>
+      <rect class="chip" x="806" y="322" width="70" height="26" rx="13"/><text x="841" y="339.5">Write</text>
+    </g>
+    <text x="386" y="402" font-size="15" font-weight="600">Claude decide qué te toca. El código junta los datos.</text>
+
+    <!-- Claude Code ↔ CLI -->
+    <line class="linea" x1="560" y1="432" x2="560" y2="478" marker-end="url(#p)"/>
+    <text x="548" y="460" font-size="12" class="mono muted" text-anchor="end">bin/hackme ronda</text>
+    <line class="linea" x1="700" y1="478" x2="700" y2="432" marker-end="url(#p)"/>
+    <text x="712" y="460" font-size="12" class="mono muted">ronda.json</text>
+
+    <!-- CLI -->
+    <rect class="cli" x="360" y="480" width="540" height="212" rx="16"/>
+    <text x="386" y="518" font-size="22" class="mono" font-weight="700">bin/hackme</text>
+    <text x="874" y="516" font-size="13" class="mono muted" text-anchor="end">Python · sin dependencias</text>
+    <text x="386" y="542" font-size="14" class="muted">Determinístico: junta, cruza y recuerda lo que ya vio.</text>
+    <g font-size="13" class="mono" text-anchor="middle">
+      <rect class="chip" x="386" y="560" width="116" height="30" rx="8"/><text x="444" y="580">inventario</text>
+      <rect class="chip" x="514" y="560" width="116" height="30" rx="8"/><text x="572" y="580">aguara</text>
+      <rect class="chip" x="642" y="560" width="116" height="30" rx="8"/><text x="700" y="580">radar</text>
+      <rect class="chip" x="770" y="560" width="106" height="30" rx="8"/><text x="823" y="580">aws</text>
+      <rect class="chip" x="386" y="600" width="116" height="30" rx="8"/><text x="444" y="620">vercel</text>
+      <rect class="chip-v" x="514" y="600" width="116" height="30" rx="8"/><text x="572" y="620" class="acc">vigía</text>
+      <rect class="chip" x="642" y="600" width="116" height="30" rx="8"/><text x="700" y="620">memoria</text>
+      <rect class="chip" x="770" y="600" width="106" height="30" rx="8"/><text x="823" y="620">avisar</text>
+    </g>
+    <text x="386" y="668" font-size="13.5" class="muted">El vigía corre solo, sin Claude: cuenta y compara con umbrales.</text>
+
+    <!-- Salidas -->
+    <rect class="caja" x="360" y="756" width="260" height="70" rx="12"/>
+    <text x="380" y="784" font-size="16" class="mono" font-weight="700">hackme-privado</text>
+    <text x="380" y="808" font-size="13" class="muted">informes y memoria · repo privado</text>
+    <rect class="tele" x="640" y="756" width="260" height="70" rx="12"/>
+    <text x="660" y="784" font-size="16" font-weight="600">Telegram</text>
+    <text x="660" y="808" font-size="13" class="muted">solo lo nuevo · al momento</text>
+    <path class="linea" d="M360 404 H334 V791 H358" marker-end="url(#p)"/>
+    <text x="324" y="720" font-size="12" class="mono muted" text-anchor="end">escribe el informe</text>
+    <text x="324" y="737" font-size="12" class="mono muted" text-anchor="end">y hace push</text>
+    <line class="linea" x1="490" y1="694" x2="490" y2="754" marker-end="url(#p)"/>
+    <text x="502" y="728" font-size="12" class="mono muted">memoria</text>
+    <line class="linea-a" x1="770" y1="694" x2="770" y2="754" marker-end="url(#a)"/>
+    <text x="782" y="728" font-size="12" class="mono acc">bin/avisar</text>
+
+    <!-- Frontera -->
+    <line class="frontera" x1="958" y1="70" x2="958" y2="700"/>
+    <text x="972" y="72" font-size="12" class="mono warn" letter-spacing="1.2">SOLO LECTURA</text>
+    <text x="972" y="90" font-size="12" class="mono warn">del otro lado no escribe nada</text>
+
+    <!-- Fuentes -->
+    <g>
+      <rect class="caja" x="1012" y="108" width="282" height="62" rx="10"/>
+      <text x="1030" y="135" font-size="15.5" font-weight="600">Oktsec Radar</text>
+      <text x="1030" y="156" font-size="12.5" class="muted">avisos curados · HTTPS</text>
+      <rect class="caja" x="1012" y="186" width="282" height="62" rx="10"/>
+      <text x="1030" y="213" font-size="15.5" font-weight="600">Aguara</text>
+      <text x="1030" y="234" font-size="12.5" class="muted">escáner local · 258 reglas</text>
+      <rect class="caja" x="1012" y="264" width="282" height="62" rx="10"/>
+      <text x="1030" y="291" font-size="15.5" font-weight="600">64 repos y la Mac</text>
+      <text x="1030" y="312" font-size="12.5" class="muted">archivos · nunca los .env</text>
+      <rect class="caja" x="1012" y="342" width="282" height="62" rx="10"/>
+      <text x="1030" y="369" font-size="15.5" font-weight="600">AWS</text>
+      <text x="1030" y="390" font-size="12.5" class="muted">usuario IAM de solo lectura</text>
+      <rect class="caja" x="1012" y="420" width="282" height="62" rx="10"/>
+      <text x="1030" y="447" font-size="15.5" font-weight="600">Vercel</text>
+      <text x="1030" y="468" font-size="12.5" class="muted">CLI · chequeo de seguridad</text>
+      <rect class="caja" x="1012" y="498" width="282" height="62" rx="10"/>
+      <text x="1030" y="525" font-size="15.5" font-weight="600">Bases de las apps</text>
+      <text x="1030" y="546" font-size="12.5" class="muted">Postgres · usuario de solo lectura</text>
+    </g>
+    <g class="linea">
+      <line x1="984" y1="139" x2="984" y2="600"/>
+    </g>
+    <g>
+      <line class="linea" x1="984" y1="139" x2="1010" y2="139" marker-end="url(#p)"/>
+      <line class="linea" x1="984" y1="217" x2="1010" y2="217" marker-end="url(#p)"/>
+      <line class="linea" x1="984" y1="295" x2="1010" y2="295" marker-end="url(#p)"/>
+      <line class="linea" x1="984" y1="373" x2="1010" y2="373" marker-end="url(#p)"/>
+      <line class="linea" x1="984" y1="451" x2="1010" y2="451" marker-end="url(#p)"/>
+      <line class="linea" x1="984" y1="529" x2="1010" y2="529" marker-end="url(#p)"/>
+    </g>
+    <line class="linea" x1="900" y1="600" x2="984" y2="600"/>
+    <text x="912" y="590" font-size="12" class="mono muted">lee</text>
+  </svg>
+
+  <div class="pie">
+    <span><b>Solo observa</b> · no cambia nada</span>
+    <span><b>No bloquea</b> · avisa y decide una persona</span>
+    <span><b>Secretos nunca</b> · nombres, no valores</span>
+    <span><b>Lo que lee son datos</b> · no órdenes</span>
+  </div>
+</div>
+</body>
+</html>
