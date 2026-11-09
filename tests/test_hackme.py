@@ -272,6 +272,32 @@ class Vigia(unittest.TestCase):
             self.assertIn("1.2.3.4 (Ana).", texto)
             self.assertNotIn("1.2.3.45 (Ana)", texto)
 
+    def test_eventos_de_una_app_por_http(self):
+        eventos = [
+            {"cuando": "2026-11-07T03:58:00+00:00", "tipo": "pedido-link", "resultado": "enviado", "ip": "9.9.9.9",
+             "email_hash": self.v.hash_email("Ana@x.com")},
+            {"cuando": "2026-11-07T03:59:00+00:00", "tipo": "pedido-link", "resultado": "limite-email", "ip": "1.2.3.4",
+             "email_hash": self.v.hash_email("ana@x.com")},
+            {"cuando": "2026-11-07T04:00:00+00:00", "tipo": "canje", "resultado": "ok", "ip": "8.8.8.8",
+             "email_hash": self.v.hash_email("otra@x.com")},
+        ]
+        filas = self.v.filas_de_eventos(eventos, ["ana@x.com"])
+        self.assertEqual([(f["cuenta"], f["resultado"]) for f in filas],
+                         [("ana@x.com", "pedido"), ("ana@x.com", "fallo"), (f"#{self.v.hash_email('otra@x.com')}", "ok")])
+        alertas = self.v.detectar_cuentas_vigiladas("nucleo", filas, {"1.2.3.4"})  # 1.2.3.4 es tuya
+        self.assertEqual([a["clave"] for a in alertas], ["nucleo:link-para:ana@x.com:9.9.9.9"])
+
+    def test_ip_que_llega_al_tope_de_la_app(self):
+        eventos = [{"cuando": f"2026-11-07T04:0{i}:00+00:00", "tipo": "pedido-link",
+                    "resultado": "limite-ip" if i > 4 else "no-registrado", "ip": "192.0.2.77",
+                    "email_hash": "" if i > 4 else self.v.hash_email(f"u{i}@x.com")} for i in range(7)]
+        filas = self.v.filas_de_eventos(eventos, [])
+        alertas = self.v.detectar_topes("nucleo", filas)
+        self.assertEqual([a["clave"] for a in alertas], ["nucleo:tope:192.0.2.77"])
+        self.assertIn("5 cuentas distintas", alertas[0]["detalle"])
+        logins, _ = self.v.detectar_logins("nucleo", filas, self.u, [], {}, [])
+        self.assertNotIn("A1", [a["deteccion"] for a in logins])  # los intentos sin email no son "una cuenta"
+
     def test_guardduty_baja_no_listada_no_avisa(self):
         self.assertEqual(self.v.detectar_guardduty("1", [{"Type": "Recon:EC2/Portscan", "Severity": 2}]), [])
 

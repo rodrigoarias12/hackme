@@ -64,6 +64,41 @@ Each app's schema is private, so this repo doesn't know it. You write the querie
 Every query runs inside `BEGIN TRANSACTION READ ONLY` with a 20 s timeout. Use a read-only user
 anyway (below): defense in depth.
 
+## Apps that expose their own events
+
+Some apps don't have a database you can query, or keep their logs where hackme can't read them.
+They can expose their access events over HTTP instead, and the vigía reads them every pass:
+
+```json
+{
+  "apps": [
+    {
+      "nombre": "nucleo",
+      "eventos_url": "https://api.example.com/api/seguridad/eventos",
+      "token": "VIGIA_TOKEN_NUCLEO",
+      "cuentas_vigiladas": ["you@example.com"]
+    }
+  ]
+}
+```
+
+The contract the app implements (Núcleo does):
+
+- `GET <eventos_url>?desde=<ISO 8601>` with `Authorization: Bearer <token>`. The token is its own,
+  read-only, and lives in `~/.config/hackme/vigia.env`. Without it configured, the endpoint should
+  not exist (404).
+- Response: `{"eventos": [{"cuando": "…", "tipo": "pedido-link" | "canje" | "invitacion",
+  "resultado": "…", "ip": "…", "email_hash": "…"}]}`, oldest first.
+- `email_hash` is `sha256(lowercase email)`, first 16 hex characters. Emails are never sent in
+  clear: the vigía hashes `cuentas_vigiladas` the same way to recognize yours.
+- `canje:ok` and `invitacion:ok` are successful logins; `pedido-link:enviado` is a login link sent;
+  `limite-ip` means the app's own rate limit stopped that IP; anything else is a failed attempt.
+
+What it adds: **A5** someone asked for a login link for one of your accounts, **A6** someone logged
+in with it, from an IP that isn't in `ips_conocidas`, and **A2** an IP hit the app's own rate limit
+(someone is trying emails on the login). The usual A1–A4 run on the same rows. The vigía keeps a
+cursor per app, so each pass reads only what's new.
+
 ## Read-only users
 
 Give the vigía the least it needs. If its credentials leak, the attacker can read what you detect,

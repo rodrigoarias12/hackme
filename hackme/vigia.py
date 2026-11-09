@@ -17,6 +17,7 @@ Avisa una vez por clave por día y con un tope diario: quien ataca con un script
 el chat ni tapar lo demás. Nunca bloquea nada.
 """
 import datetime as dt
+import hashlib
 import json
 import os
 import re
@@ -24,7 +25,9 @@ import shutil
 import statistics
 import subprocess
 import sys
+import urllib.error
 import urllib.parse
+import urllib.request
 from pathlib import Path
 
 from . import avisar, aws, rutas
@@ -178,6 +181,64 @@ def detectar_accesos(app, filas, u, historia_firewall):
     return alertas, firewall
 
 
+# Apps que exponen sus eventos por HTTP (contrato en docs/vigia.md): qué cuenta como entrada.
+RESULTADO_EVENTO = {("pedido-link", "enviado"): "pedido", ("canje", "ok"): "ok", ("invitacion", "ok"): "ok"}
+
+
+def hash_email(email):
+    """El mismo hash que guarda la app: sha256 del email en minúsculas, primeros 16 hex."""
+    return hashlib.sha256((email or "").strip().lower().encode()).hexdigest()[:16]
+
+
+def filas_de_eventos(eventos, vigiladas):
+    """Eventos de la app → filas de login. Los emails vigilados se reconocen por su hash."""
+    nombres = {hash_email(e): e for e in vigiladas}
+    filas = []
+    for ev in eventos:
+        h = ev.get("email_hash") or ""
+        filas.append({
+            "cuando": ev.get("cuando"), "ip": ev.get("ip") or "sin-ip", "pais": None,
+            "cuenta": nombres.get(h) or (f"#{h}" if h else "sin-email"), "vigilada": h in nombres,
+            "resultado": RESULTADO_EVENTO.get((ev.get("tipo"), ev.get("resultado")), "fallo"),
+            "detalle": f"{ev.get('tipo')}:{ev.get('resultado')}",
+        })
+    return filas
+
+
+def detectar_cuentas_vigiladas(app, filas, conocidas):
+    """A5/A6 para las cuentas que importan: alguien pidió un link o entró, desde una IP que no es tuya."""
+    alertas = []
+    for f in filas:
+        if not f.get("vigilada") or f["ip"] in conocidas:
+            continue
+        if f["detalle"].startswith("pedido-link"):
+            alertas.append(_alerta(
+                f"{app}:link-para:{f['cuenta']}:{f['ip']}", "A5", f"{app}: alguien pidió un link de acceso para {f['cuenta']}",
+                f"Desde {f['ip']} ({f['detalle']}). Si no fuiste vos, no toques el link que te llegó: alguien está "
+                "probando con tu mail."))
+        elif f["resultado"] == "ok":
+            alertas.append(_alerta(
+                f"{app}:entro:{f['cuenta']}:{f['ip']}", "A6", f"{app}: entraron con {f['cuenta']} desde {f['ip']}",
+                "Si no fuiste vos, cerrá las sesiones y cambiá la contraseña del mail."))
+    return alertas
+
+
+def detectar_topes(app, filas):
+    """A2 para apps con límite propio: una IP que llegó al tope de intentos de la app ya es un ataque."""
+    por_ip = {}
+    for f in filas:
+        d = por_ip.setdefault(f["ip"], {"topes": 0, "intentos": 0, "cuentas": set()})
+        d["intentos"] += 1
+        if f["detalle"].endswith(":limite-ip"):
+            d["topes"] += 1
+        if f["cuenta"] != "sin-email":
+            d["cuentas"].add(f["cuenta"])
+    return [_alerta(f"{app}:tope:{ip}", "A2", f"{app}: {ip} llegó al tope de intentos",
+                    f"{d['intentos']} pedidos en este rato, {len(d['cuentas'])} cuentas distintas; {app} frenó {d['topes']}. "
+                    "Alguien está probando mails en el login.")
+            for ip, d in por_ip.items() if d["topes"]]
+
+
 def detectar_logins(app, filas, u, historia_fallos, paises, dominios_propios):
     """A1, A2, A3, A4, A5 y A6 sobre los intentos de entrada.
 
@@ -227,6 +288,8 @@ def detectar_logins(app, filas, u, historia_fallos, paises, dominios_propios):
                     vistos.append(pais)
 
     for cuenta, c in por_cuenta.items():
+        if cuenta in ("desconocida", "sin-email"):
+            continue
         if c["fallos"] >= u["fallos_por_cuenta"]:
             alertas.append(_alerta(
                 f"{app}:cuenta:{cuenta}", "A1", f"{app}: {c['fallos']} intentos fallidos contra {cuenta}",
@@ -446,6 +509,21 @@ def consultar(conexion, sql, desde):
     return json.loads(salida[salida.find("["):]) if "[" in salida else []
 
 
+def leer_eventos(app, desde_iso):
+    """GET de los eventos de una app que los expone por HTTP, con su token (nunca en un repo)."""
+    nombre_token = app.get("token", "")
+    token = avisar.leer_env(CONEXIONES, (nombre_token,))[nombre_token] if nombre_token else None
+    if not token:
+        raise RuntimeError(f"falta {nombre_token or 'token'} en el ambiente o en {CONEXIONES}")
+    url = app["eventos_url"] + "?" + urllib.parse.urlencode({"desde": desde_iso})
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}", "User-Agent": "hackme-vigia"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return json.load(r).get("eventos", [])
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"{app['eventos_url']} respondió {e.code}") from None
+
+
 def _aws(perfil, region, *args):
     env = dict(os.environ, AWS_REGION=region, AWS_PAGER="")
     if perfil:
@@ -548,6 +626,24 @@ def correr(enviar=True, ahora=None):
                 nuevas = detectar_silencio(nombre, (filas[0] if filas else {}).get("ultimo"),
                                            app.get("silencio_min", 360), ahora)
             alertas += nuevas
+        if app.get("eventos_url"):
+            fuente = f"{nombre}:eventos"
+            cursor = estado.setdefault("cursores", {}).get(nombre) or desde.isoformat(timespec="seconds")
+            try:
+                crudos = leer_eventos(app, cursor)
+            except (RuntimeError, ValueError, OSError) as e:
+                fallo(fuente, e)
+            else:
+                estado.setdefault("rachas", {})[fuente] = 0
+                leido.append(f"{fuente} {len(crudos)}")
+                if crudos:
+                    estado["cursores"][nombre] = crudos[-1]["cuando"]
+                filas = filas_de_eventos(crudos, app.get("cuentas_vigiladas", []))
+                nuevas, total = detectar_logins(nombre, filas, u, hist["fallos"], paises.setdefault(nombre, {}),
+                                                app.get("dominios_propios", []))
+                hist["fallos"] = (hist["fallos"] + [total])[-HISTORIA:]
+                alertas += nuevas + detectar_topes(nombre, filas) + \
+                    detectar_cuentas_vigiladas(nombre, filas, set(cfg.get("ips_conocidas", {})))
         if app.get("cuentas") and estado.get("cuentas", {}).get(nombre) != hoy:
             try:
                 filas = consultar(app["conexion"], app["cuentas"], desde)
