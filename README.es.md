@@ -80,7 +80,7 @@ primera corrida es la línea de base y después solo aparece lo que cambió.
 | **AWS** | Hallazgos de GuardDuty (severidad 4+), Security Hub HIGH/CRITICAL, Inspector HIGH/CRITICAL | AWS CLI con un perfil de solo lectura, uno o más pares `perfil:región` |
 | **Vercel** | Pedidos de acceso pendientes y miembros nuevos; variables con nombre de secreto y prefijo público (llegan al navegador); secretos `plain`; secretos de producción también en `development` (cualquiera con `vercel env pull` se los lleva a su compu); secretos de producción no `sensitive`; previews sin protección y firewall apagado en proyectos con dominio propio; proyectos viejos publicados; eventos de auditoría (`env pull`, variables cambiadas, miembros, tokens, protección, firewall); el chequeo de seguridad del propio Vercel (miembros sin MFA, tokens que no vencen, demasiados owners); las vulnerabilidades abiertas que Vercel Security Review encontró en tu propio código, por severidad y entorno | API de Vercel con la sesión del CLI (`vercel api`) o `VERCEL_TOKEN`; Security Review con `vercel security vulnerabilities list` (CLI ≥ 65), nunca `dismiss` ni `reopen`. De cada variable solo `key`, `type` y `target`, nunca el valor |
 
-<p align="center"><img src="docs/img/detecciones-es.svg" alt="81 detecciones por familia: 37 funcionando, 8 a medias, 36 por armar" width="100%"></p>
+<p align="center"><img src="docs/img/detecciones-es.svg" alt="82 detecciones por familia: 38 funcionando, 8 a medias, 36 por armar" width="100%"></p>
 
 La lista completa de detecciones, hechas y por hacer, basada en OWASP, MITRE ATT&CK y los
 benchmarks de CIS, está en [docs/detecciones.md](docs/detecciones.md).
@@ -263,7 +263,7 @@ están separadas a propósito.
 | Las fuentes | Un módulo de Python por fuente (Aguara, Radar, AWS, Vercel), solo lectura, sin dependencias | `hackme/*.py` |
 | La memoria | `nuevo` / `actualizado` / `visto` / `línea de base` por hallazgo, para que aparezca solo lo que cambió | `hackme/memoria.py` |
 | La guardia | Detecciones determinísticas como funciones puras: entran filas, salen alertas | `hackme/vigia.py` |
-| El catálogo | 81 detecciones con su fuente (OWASP, MITRE ATT&CK, CIS, NIST) y su estado | [docs/detecciones.md](docs/detecciones.md) |
+| El catálogo | 82 detecciones con su fuente (OWASP, MITRE ATT&CK, CIS, NIST) y su estado | [docs/detecciones.md](docs/detecciones.md) |
 | La salida | Un JSON que el agente lee para juzgar | [docs/ronda.md](docs/ronda.md) |
 | Los avisos | Telegram, con respaldo local o en un issue privado | `hackme/avisar.py`, `bin/avisar` |
 

@@ -82,7 +82,7 @@ the first run is a baseline and later runs only surface what changed.
 | **AWS** | GuardDuty findings (severity 4+), Security Hub HIGH/CRITICAL, Inspector HIGH/CRITICAL | AWS CLI with a read-only profile, one or more `profile:region` pairs |
 | **Vercel** | Pending access requests and new team members; secret-looking variables with a public prefix (they ship to the browser); `plain` secrets; production secrets also in `development` (anyone running `vercel env pull` takes them home); production secrets not marked `sensitive`; unprotected previews and disabled firewall on projects with a custom domain; stale published projects; audit events (`env pull`, variables changed, members, tokens, protection, firewall); Vercel's own security check (members without MFA, tokens that never expire, too many owners); open Vercel Security Review vulnerabilities in your own code, by severity and environment | Vercel REST API through the logged-in CLI (`vercel api`) or `VERCEL_TOKEN`; Security Review through `vercel security vulnerabilities list` (CLI ≥ 65), never `dismiss` or `reopen`. Only each variable's `key`, `type` and `target`, never its value |
 
-<p align="center"><img src="docs/img/detecciones-en.svg" alt="81 detections by family: 37 running, 8 partial, 36 to do" width="100%"></p>
+<p align="center"><img src="docs/img/detecciones-en.svg" alt="82 detections by family: 38 running, 8 partial, 36 to do" width="100%"></p>
 
 The full list of detections, built and planned, grounded in OWASP, MITRE ATT&CK and the CIS
 benchmarks, is in [docs/detecciones.md](docs/detecciones.md).
@@ -261,7 +261,7 @@ separate on purpose.
 | The sources | One Python module per source (Aguara, Radar, AWS, Vercel), read-only, stdlib only | `hackme/*.py` |
 | The memory | `nuevo` / `actualizado` / `visto` / `línea de base` per finding, so only changes surface | `hackme/memoria.py` |
 | The watch | Deterministic detections as pure functions: rows in, alerts out | `hackme/vigia.py` |
-| The catalog | 81 detections with their source (OWASP, MITRE ATT&CK, CIS, NIST) and status | [docs/detecciones.md](docs/detecciones.md) |
+| The catalog | 82 detections with their source (OWASP, MITRE ATT&CK, CIS, NIST) and status | [docs/detecciones.md](docs/detecciones.md) |
 | The output | One JSON the agent reads to judge | [docs/ronda.md](docs/ronda.md) |
 | Alerts | Telegram, with a local or private-issue fallback | `hackme/avisar.py`, `bin/avisar` |
 

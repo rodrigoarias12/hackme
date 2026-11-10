@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hackme</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -151,6 +153,31 @@ svg .barra-h { fill: var(--surface-2); stroke: var(--accent); stroke-width: 1.5;
 .v-col li b { font-size: 0.9375rem; }
 .v-col li span { color: var(--muted); font-size: 0.8125rem; line-height: 1.4; }
 .v-col code { font-family: var(--font-mono); font-size: 0.75rem; }
+/* Piezas: un grupo por fila (nombre a la izquierda), cada pieza con qué es y qué hace hackme con ella */
+.grupos { display: grid; gap: 28px; }
+.grupo { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: start; border-top: 1px solid var(--line); padding-top: 18px; }
+.grupo-nom { display: grid; gap: 4px; position: sticky; top: 12px; }
+.grupo-nom b { font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; }
+.grupo-nom span { color: var(--muted); font-size: 0.8125rem; line-height: 1.4; }
+.piezas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.pieza { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.pieza.nueva { border-color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
+.p-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.p-top b { font-family: var(--font-display); font-size: 1.0625rem; font-weight: 700; }
+.p-quien { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); letter-spacing: 0.02em; }
+.pieza p { font-size: 0.875rem; line-height: 1.45; }
+.pieza p i { font-style: normal; font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 1px; }
+.pieza p.p-hace i { color: var(--accent-ink); }
+.p-pie { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 2px; }
+.p-pie span { font-family: var(--font-mono); font-size: 0.6875rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.p-pie .p-nuevo { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.p-pie .p-cada { border-color: var(--accent); color: var(--accent-ink); }
+.pieza code { font-family: var(--font-mono); font-size: 0.75rem; }
+@media (max-width: 760px) {
+  .grupo { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .grupo-nom { position: static; }
+}
+
 @media (max-width: 900px) { .vercel { grid-template-columns: minmax(0, 1fr); } }
 
 /* Reglas */
@@ -187,7 +214,7 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
       <div class="cifras">
         <div class="cifra"><b>64</b><span>projects</span></div>
         <div class="cifra"><b>22,664</b><span>dependencies</span></div>
-        <div class="cifra"><b>81</b><span>detections</span></div>
+        <div class="cifra"><b>82</b><span>detections</span></div>
         <div class="cifra"><b>15 min</b><span>between passes</span></div>
       </div>
     </div>
@@ -303,6 +330,55 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
     <figcaption>Everything on the left is read with users that can't change anything: in AWS, one that only sees findings and the event history; in each database, one that only sees two tables. If someone steals those keys, they see what hackme sees and nothing more.</figcaption>
   </figure>
 
+  <section class="fig" aria-labelledby="f6">
+    <div class="fig-head">
+      <span class="eyebrow">The pieces</span>
+      <h2 id="f6">What each piece does</h2>
+      <p class="nota">hackme doesn't reinvent detectors: it pulls in the ones that already exist (AWS's, Vercel's, Oktsec's) and adds its own. Here is each piece, what it is and what hackme does with it.</p>
+    </div>
+    <div class="grupos">
+      <div class="grupo"><div class="grupo-nom"><b>The world</b><span>What happens out there, and what you run</span></div>
+        <div class="piezas">
+          <div class="pieza"><div class="p-top"><b>Oktsec Radar</b><span class="p-quien">Oktsec · Gus Aragón</span></div><p><i>What it is</i>A curated feed of vulnerabilities and attacked packages, with the affected versions.</p><p class="p-hace"><i>What hackme does</i>Pulls it every morning and matches it against the exact versions you have installed.</p><div class="p-pie"><span class="p-cada">daily</span><span>R1</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Aguara</b><span class="p-quien">Oktsec · open source</span></div><p><i>What it is</i>A scanner for the surface AI agents read: skills, <code>CLAUDE.md</code>, MCP configs and workflows.</p><p class="p-hace"><i>What hackme does</i>Looks for prompt injection, dangerous instructions and hardcoded keys, and checks your lockfiles against 38 thousand compromised packages.</p><div class="p-pie"><span class="p-cada">daily</span><span>R2 R3 R5</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Inventory</b><span class="p-quien">hackme</span></div><p><i>What it is</i>Everything you run: 64 repos, 22,664 dependencies, and the Mac's apps, brew, runtimes and MCPs.</p><p class="p-hace"><i>What hackme does</i>It's what everything else is matched against. From variables it reads names only: it never opens a real <code>.env</code>.</p><div class="p-pie"><span class="p-cada">daily</span><span>baseline</span></div></div>
+        </div>
+      </div>
+      <div class="grupo"><div class="grupo-nom"><b>AWS</b><span>Read with a user that can&#x27;t change anything</span></div>
+        <div class="piezas">
+          <div class="pieza"><div class="p-top"><b>CloudTrail</b><span class="p-quien">AWS</span></div><p><i>What it is</i>The history of every API call in the account: who did what, when and from where.</p><p class="p-hace"><i>What hackme does</i>The watch reads it for root in use, new users or keys, logging turned off, public buckets and deleted databases.</p><div class="p-pie"><span class="p-cada">15 min</span><span>B7 B9 B10 C1–C8</span></div></div>
+          <div class="pieza"><div class="p-top"><b>GuardDuty</b><span class="p-quien">AWS</span></div><p><i>What it is</i>AWS's threat detector: it reads traffic, DNS and database logins, and flags what looks wrong.</p><p class="p-hace"><i>What hackme does</i>Brings in severity 4 and up: credentials used from another IP, suspicious database logins, attack sequences.</p><div class="p-pie"><span class="p-cada">15 min and daily</span><span>B11 B12 R10</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Security Hub</b><span class="p-quien">AWS</span></div><p><i>What it is</i>The account's posture against CIS AWS Foundations: root MFA, open ports, public databases.</p><p class="p-hace"><i>What hackme does</i>Brings in high and critical failures, and uses them as evidence for attack paths.</p><div class="p-pie"><span class="p-cada">daily</span><span>R10 E3 E10</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Inspector</b><span class="p-quien">AWS</span></div><p><i>What it is</i>Finds known vulnerabilities (CVEs) in servers, container images and Lambdas.</p><p class="p-hace"><i>What hackme does</i>Brings in high and critical, and flags what showed up since the last round.</p><div class="p-pie"><span class="p-cada">daily</span><span>R10 E12</span></div></div>
+        </div>
+      </div>
+      <div class="grupo"><div class="grupo-nom"><b>Vercel</b><span>Teams, projects and code</span></div>
+        <div class="piezas">
+          <div class="pieza"><div class="p-top"><b>Team and projects</b><span class="p-quien">Vercel API</span></div><p><i>What it is</i>Who is on each team and how each project is set up.</p><p class="p-hace"><i>What hackme does</i>Flags access requests, new members, secrets with a public prefix, unprotected previews, firewall off and audit log changes. From each variable it reads the name, never the value.</p><div class="p-pie"><span class="p-cada">daily</span><span>R6–R9 B6</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Security check</b><span class="p-quien"><code>vercel security check</code></span></div><p><i>What it is</i>Vercel's own posture check on the team.</p><p class="p-hace"><i>What hackme does</i>Runs it per team: members without MFA, tokens that never expire, too many owners, exposed variables.</p><div class="p-pie"><span class="p-cada">daily</span><span>E2 E8</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Security Review</b><span class="p-quien"><code>vercel security vulnerabilities</code></span></div><p><i>What it is</i>Vercel reads your code with AI and finds vulnerabilities: login bypass, seeing another customer's data, SSRF, sandbox escape.</p><p class="p-hace"><i>What hackme does</i>Lists the open ones by severity, repo and environment. Read only: it never dismisses or reopens them.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">daily</span><span>R11</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Firewall</b><span class="p-quien">Vercel</span></div><p><i>What it is</i>The firewall Vercel puts in front of each app.</p><p class="p-hace"><i>What hackme does</i>The watch checks whether it suddenly blocks or challenges far more requests than usual.</p><div class="p-pie"><span class="p-cada">15 min</span><span>A11</span></div></div>
+        </div>
+      </div>
+      <div class="grupo"><div class="grupo-nom"><b>Your apps</b><span>Who gets in, and who tries</span></div>
+        <div class="piezas">
+          <div class="pieza"><div class="p-top"><b>Each app&#x27;s database</b><span class="p-quien">read-only user</span></div><p><i>What it is</i>One SQL query per app, written by you, with a user that can only see two tables.</p><p class="p-hace"><i>What hackme does</i>Counts failures per account and per IP, logins after many failures, new countries and accounts that log in and do nothing.</p><div class="p-pie"><span class="p-cada">15 min</span><span>A1–A6 E1</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Access events</b><span class="p-quien">app endpoint</span></div><p><i>What it is</i>The app records each login request with its IP and a hashed email, readable with a separate token.</p><p class="p-hace"><i>What hackme does</i>Alerts when someone requests a link for an account you watch, or an IP hits the attempt limit.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">15 min</span><span>A2 A5 A6</span></div></div>
+        </div>
+      </div>
+      <div class="grupo"><div class="grupo-nom"><b>The agent</b><span>What hackme does with all of it</span></div>
+        <div class="piezas">
+          <div class="pieza"><div class="p-top"><b>Daily round</b><span class="p-quien">Claude Code skill</span></div><p><i>What it is</i>At 8:30 it gathers inventory, Aguara, Radar, AWS and Vercel into one state.</p><p class="p-hace"><i>What hackme does</i>Claude judges each match (affects you, check, doesn't) and writes the report to a private repo.</p><div class="p-pie"><span class="p-cada">8:30</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Watch</b><span class="p-quien">no AI</span></div><p><i>What it is</i>A process every 15 minutes that reads, counts and compares against thresholds.</p><p class="p-hace"><i>What hackme does</i>Alerts while it happens: once per thing per day, 25 at most. No AI makes it cheap and always consistent.</p><div class="p-pie"><span class="p-cada">15 min</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Memory</b><span class="p-quien">hackme</span></div><p><i>What it is</i>What each source has already seen, with a stamp that changes when the finding changes.</p><p class="p-hace"><i>What hackme does</i>Only new and changed things alert. Each source's first run is a baseline: it records and stays quiet.</p><div class="p-pie"><span class="p-cada">every pass</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Attack paths</b><span class="p-quien">hackme + Claude</span></div><p><i>What it is</i>Chains from an entry point to something valuable (your database, your AWS account, your secrets), with evidence for each step.</p><p class="p-hace"><i>What hackme does</i>Alerts when a path opens or closes. On Mondays, Claude writes the full audit.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">daily · Monday</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Footprint</b><span class="p-quien">hackme on itself</span></div><p><i>What it is</i>An audit of the agent itself, built from the sessions Claude Code keeps.</p><p class="p-hace"><i>What hackme does</i>Flags if it wrote outside its repos, opened a secret, changed something in the cloud or tried to block.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">every round</span></div></div>
+          <div class="pieza"><div class="p-top"><b>Telegram</b><span class="p-quien">the alert</span></div><p><i>What it is</i>The channel everything reaches you on.</p><p class="p-hace"><i>What hackme does</i>Only what's new: what happened, from where and what to do.</p><div class="p-pie"><span class="p-cada">right away</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <figure class="fig" aria-labelledby="f2">
     <div class="fig-head">
       <span class="eyebrow">An attack, to scale</span>
@@ -371,12 +447,12 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
   <figure class="fig" aria-labelledby="f3">
     <div class="fig-head">
       <span class="eyebrow">What it watches</span>
-      <h2 id="f3">81 detections, taken from the standards</h2>
+      <h2 id="f3">82 detections, taken from the standards</h2>
       <p class="nota">Not what I came up with: what a security team watches. Each square is a detection with its source; the filled ones already run.</p>
     </div>
     <div class="lienzo">
       <div class="waffle">
-        <div class="fila"><div class="fila-nom"><b>Daily round</b><span>10 of 10 running</span></div><div class="celdas"><span class="celda ok" title="R1 · Advisory affects something you run">R1</span><span class="celda ok" title="R2 · Prompt injection / dangerous instructions in the agentic surface (skills, `CLAUDE.md`, MCP configs, workflows)">R2</span><span class="celda ok" title="R3 · Compromised package installed">R3</span><span class="celda ok" title="R4 · Secret files committed to git">R4</span><span class="celda ok" title="R5 · Hardcoded credentials">R5</span><span class="celda ok" title="R6 · Secret with a public prefix (ships to the browser)">R6</span><span class="celda ok" title="R7 · Production secrets also in `development` / not `sensitive` / `plain`">R7</span><span class="celda ok" title="R8 · Unprotected previews, firewall off on custom domains">R8</span><span class="celda ok" title="R9 · Stale published projects">R9</span><span class="celda ok" title="R10 · GuardDuty severity 4+, Security Hub and Inspector HIGH/CRITICAL">R10</span></div></div>
+        <div class="fila"><div class="fila-nom"><b>Daily round</b><span>11 of 11 running</span></div><div class="celdas"><span class="celda ok" title="R1 · Advisory affects something you run">R1</span><span class="celda ok" title="R2 · Prompt injection / dangerous instructions in the agentic surface (skills, `CLAUDE.md`, MCP configs, workflows)">R2</span><span class="celda ok" title="R3 · Compromised package installed">R3</span><span class="celda ok" title="R4 · Secret files committed to git">R4</span><span class="celda ok" title="R5 · Hardcoded credentials">R5</span><span class="celda ok" title="R6 · Secret with a public prefix (ships to the browser)">R6</span><span class="celda ok" title="R7 · Production secrets also in `development` / not `sensitive` / `plain`">R7</span><span class="celda ok" title="R8 · Unprotected previews, firewall off on custom domains">R8</span><span class="celda ok" title="R9 · Stale published projects">R9</span><span class="celda ok" title="R10 · GuardDuty severity 4+, Security Hub and Inspector HIGH/CRITICAL">R10</span><span class="celda ok" title="R11 · Vulnerability in your own code (Vercel Security Review)">R11</span></div></div>
         <div class="fila"><div class="fila-nom"><b>Attack in progress</b><span>9 of 15 running</span></div><div class="celdas"><span class="celda ok" title="A1 · Failures on one account">A1</span><span class="celda ok" title="A2 · Spray from one IP">A2</span><span class="celda ok" title="A3 · Distributed stuffing">A3</span><span class="celda ok" title="A4 · Success after failures">A4</span><span class="celda ok" title="A5 · Denied logins">A5</span><span class="celda ok" title="A6 · New country / impossible travel">A6</span><span class="celda falta" title="A7 · Session hijack signs">A7</span><span class="celda ok" title="A8 · Forced browsing / 404 burst">A8</span><span class="celda ok" title="A9 · Scanner fingerprint">A9</span><span class="celda falta" title="A10 · Injection attempts">A10</span><span class="celda ok" title="A11 · Firewall action surge">A11</span><span class="celda falta" title="A12 · Authorization failures / IDOR">A12</span><span class="celda falta" title="A13 · Abnormal data volume / scraping">A13</span><span class="celda falta" title="A14 · Honeytrap hit">A14</span><span class="celda falta" title="A15 · 5xx spike">A15</span></div></div>
         <div class="fila"><div class="fila-nom"><b>Accounts and identity</b><span>7 of 12 running</span></div><div class="celdas"><span class="celda falta" title="B1 · App privilege change">B1</span><span class="celda falta" title="B2 · Login by an offboarded user">B2</span><span class="celda falta" title="B3 · GitHub member / role change">B3</span><span class="celda falta" title="B4 · GitHub 2FA requirement disabled">B4</span><span class="celda falta" title="B5 · GitHub token granted">B5</span><span class="celda ok" title="B6 · Vercel team change">B6</span><span class="celda ok" title="B7 · AWS root use">B7</span><span class="celda ok" title="B8 · AWS console sign-in risk">B8</span><span class="celda ok" title="B9 · AWS unauthorized API calls">B9</span><span class="celda ok" title="B10 · New IAM identity or key">B10</span><span class="celda ok" title="B11 · Stolen AWS credentials">B11</span><span class="celda ok" title="B12 · Database logins">B12</span></div></div>
         <div class="fila"><div class="fila-nom"><b>Cloud changes</b><span>10 of 13 running</span></div><div class="celdas"><span class="celda ok" title="C1 · CloudTrail tampering">C1</span><span class="celda ok" title="C2 · IAM or password policy change">C2</span><span class="celda ok" title="C3 · KMS key disabled or scheduled for deletion">C3</span><span class="celda ok" title="C4 · S3 policy / public exposure">C4</span><span class="celda ok" title="C5 · AWS Config change">C5</span><span class="celda ok" title="C6 · Network change">C6</span><span class="celda ok" title="C7 · Organizations change">C7</span><span class="celda ok" title="C8 · Detector disabled">C8</span><span class="celda parcial" title="C9 · Database made public / snapshot exfiltration">C9</span><span class="celda ok" title="C10 · Database theft or destruction">C10</span><span class="celda parcial" title="C11 · Secrets changed or read">C11</span><span class="celda parcial" title="C12 · Protection, domain or project moved">C12</span><span class="celda ok" title="C13 · Log source went silent">C13</span></div></div>
@@ -386,7 +462,7 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
       </div>
     </div>
     <div class="ley">
-      <span><i class="ok"></i><b>37</b> running</span>
+      <span><i class="ok"></i><b>38</b> running</span>
       <span><i class="parcial"></i><b>8</b> partial</span>
       <span><i class="falta"></i><b>36</b> to do</span>
     </div>
