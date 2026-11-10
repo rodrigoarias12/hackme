@@ -39,6 +39,7 @@ Source keys are listed at the end. Every row alerts **only**: hackme never block
 | R8 | Unprotected previews, firewall off on custom domains | Vercel project settings | ✅ D | ATT T1190 |
 | R9 | Stale published projects | Vercel last deploy > 180 days [M] | ✅ D | CIS Controls 1.1, 2.2 (inventory) |
 | R10 | GuardDuty severity 4+, Security Hub and Inspector HIGH/CRITICAL | AWS APIs | ✅ D | GD-IAM; GD-RDS; CIS v5 |
+| R11 | Vulnerability in your own code (auth bypass, IDOR, SSRF, sandbox escape…) | `vercel security vulnerabilities list --status open` (Vercel Security Review, CLI ≥ 65; read only, never `dismiss`/`reopen`) | ✅ D | Vercel Security Review; CIS Controls 16 |
 
 ## A. Attack in progress (15m)
 
@@ -125,7 +126,7 @@ Source keys are listed at the end. Every row alerts **only**: hackme never block
 | E9 | Logging coverage and retention | CloudTrail multi-region and validation, Config, flow logs, drains per Vercel project | [S] retention ≥ 90 days; GitHub keeps only 180, so export it | ○ | CIS v5 3.1–3.9; CIS Controls 8.2, 8.9, 8.10 |
 | E10 | Infra posture drift | Public or unencrypted RDS; ports open to the world | 0 failing controls | ◐ via Security Hub | CIS v5 2.2.1–2.2.3, 5.2–5.4 |
 | E11 | Repo security coverage | Branch protection, secret scanning, Dependabot on every repo | [M] 100% | ○ | GH-WH (`security_and_analysis`) |
-| E12 | Open vulnerabilities by severity and age | Inspector, Security Hub, Dependabot | [S] remediate monthly or faster, by risk | ◐ Inspector and Security Hub | CIS Controls 7.2, 7.7; NIST55 |
+| E12 | Open vulnerabilities by severity and age | Inspector, Security Hub, Dependabot | [S] remediate monthly or faster, by risk | ◐ Inspector, Security Hub and Vercel Security Review | CIS Controls 7.2, 7.7; NIST55 |
 
 ## F. Program metrics (weekly / monthly)
 

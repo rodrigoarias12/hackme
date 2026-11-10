@@ -187,6 +187,40 @@ class VariablesDeVercel(unittest.TestCase):
         self.assertEqual(por_id["vercel:equipo:chequeo:algo-nuevo"]["severidad"], "media")
 
 
+    def test_vulnerabilidades_de_security_review(self):
+        from unittest import mock
+        from hackme import vercel
+        lista = {"vulnerabilities": [
+            {"findingId": "F1", "number": 1, "environment": None, "branchRef": "main", "severity": "critical",
+             "vulnerabilityClass": "sandbox-escape", "title": "Scripts corren en el host", "summary": "x",
+             "foundIn": {"repository": "org/app", "commitSha": "670333a5a41f44a5b0e6"}},
+            {"findingId": "F2", "number": 2, "environment": "production", "severity": "medium",
+             "vulnerabilityClass": "open-redirect", "title": "Redirect abierto", "foundIn": {"repository": "org/web"}}]}
+        llamadas = []
+        def correr(cmd, **kw):
+            llamadas.append(cmd)
+            return mock.Mock(returncode=0, stdout=json.dumps(lista), stderr="")
+        hallazgos = []
+        with mock.patch.object(vercel.shutil, "which", return_value="/bin/vercel"), \
+             mock.patch.object(vercel.subprocess, "run", side_effect=correr):
+            vercel._vulnerabilidades("equipo", hallazgos)
+        self.assertEqual([(h["id"], h["severidad"], h["recurso"]) for h in hallazgos],
+                         [("vercel:equipo:review:F1", "crítica", "org/app"), ("vercel:equipo:review:F2", "media", "org/web")])
+        self.assertEqual(hallazgos[0]["detalle"]["entorno"], "repo")
+        self.assertIn("list", llamadas[0])  # solo lee: nunca dismiss ni reopen
+        self.assertFalse({"dismiss", "reopen"} & set(llamadas[0]))
+
+    def test_equipo_sin_security_review_no_es_error(self):
+        from unittest import mock
+        from hackme import vercel
+        salida = mock.Mock(returncode=1, stdout="", stderr='{"reason":"not_found","message":"Security Review isn\'t enabled for x."}')
+        hallazgos = []
+        with mock.patch.object(vercel.shutil, "which", return_value="/bin/vercel"), \
+             mock.patch.object(vercel.subprocess, "run", return_value=salida):
+            vercel._vulnerabilidades("x", hallazgos)
+        self.assertEqual(hallazgos, [])
+
+
 class Vigia(unittest.TestCase):
     """Las detecciones son funciones puras: filas -> alertas."""
 

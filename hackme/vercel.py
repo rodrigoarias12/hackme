@@ -196,6 +196,33 @@ def _chequeo(slug, hallazgos):
                                    f"{slug}: {cantidad} {titulo} (chequeo de Vercel)", slug, detalle))
 
 
+
+SEVERIDAD_REVIEW = {"critical": "crítica", "high": "alta", "medium": "media", "low": "baja"}
+
+
+def _vulnerabilidades(slug, hallazgos):
+    """Las vulnerabilidades abiertas de Vercel Security Review (CLI >= 65). Solo `list`: `dismiss` y
+    `reopen` cambian estado en Vercel y el agente no escribe. Un equipo sin Security Review no es error."""
+    if not shutil.which("vercel"):
+        return
+    r = subprocess.run(["vercel", "security", "vulnerabilities", "list", "--json", "--non-interactive",
+                        "--status", "open", "--limit", "100", "--scope", slug],
+                       capture_output=True, text=True, timeout=180)
+    if r.returncode != 0:
+        motivo = (r.stderr.strip().splitlines() or [f"exit {r.returncode}"])[-1]
+        if "isn't enabled" in motivo or "not_found" in motivo:
+            return
+        raise RuntimeError(motivo)
+    for v in json.loads(r.stdout).get("vulnerabilities") or []:
+        repo = (v.get("foundIn") or {}).get("repository") or "?"
+        entorno = v.get("environment") or "repo"
+        hallazgos.append(_hallazgo(f"vercel:{slug}:review:{v['findingId']}", SEVERIDAD_REVIEW.get(v.get("severity"), "media"),
+                                   f"{repo} #{v.get('number')} ({entorno}): {v.get('title')} (Security Review)", repo,
+                                   {"clase": v.get("vulnerabilityClass"), "entorno": entorno, "rama": v.get("branchRef"),
+                                    "commit": ((v.get("foundIn") or {}).get("commitSha") or "")[:12],
+                                    "resumen": (v.get("summary") or "")[:300]}))
+
+
 def correr():
     if not os.environ.get("VERCEL_TOKEN") and not shutil.which("vercel"):
         return {"hallazgos": [], "dominios": [], "error": "sin VERCEL_TOKEN ni CLI de Vercel"}
@@ -207,14 +234,14 @@ def correr():
     except (RuntimeError, ValueError, OSError) as e:
         return {"hallazgos": [], "dominios": [], "error": str(e)}
     for t in equipos:
-        for paso in (_equipo, _auditoria, _chequeo):
+        for paso in (_equipo, _auditoria, _chequeo, _vulnerabilidades):
             try:
                 if paso is _equipo:
                     _equipo(t["id"], t["slug"], hallazgos, dominios)
                 elif paso is _auditoria:
                     _auditoria(t["id"], t["slug"], desde, hallazgos)
                 else:
-                    _chequeo(t["slug"], hallazgos)
+                    paso(t["slug"], hallazgos)
             except (RuntimeError, ValueError, OSError, subprocess.TimeoutExpired) as e:
                 errores[f"{t['slug']}:{paso.__name__.strip('_')}"] = str(e)[:200]
     # Los miembros confirmados son contexto: solo importan cuando aparecen (estado "nuevo").

@@ -100,7 +100,11 @@ prefix, `plain` secrets, production secrets also in `development`, production se
 published projects, audit events (`env pull`, variables added, member changes, blocked deploys), and
 Vercel's own `vercel security check` (ids `vercel:<team>:chequeo:<check>`: members without MFA, tokens
 that never expire, too many owners, unprotected previews, variables exposed to the browser) with
-`detalle` = `{cantidad, de, ejemplos, truncado}`; `ejemplos` are labels (user, project, variable name).
+`detalle` = `{cantidad, de, ejemplos, truncado}`; `ejemplos` are labels (user, project, variable name). Open Vercel Security Review vulnerabilities
+(ids `vercel:<team>:review:<findingId>`, CLI ≥ 65) map critical/high/medium/low to crítica/alta/media/baja, with
+`detalle` = `{clase, entorno, rama, commit, resumen}`; `entorno` is `production`, `preview` or `repo` (found by
+scanning the repository, not a deployment). A team without Security Review is skipped, not an error. Only `list`
+is called: `dismiss` and `reopen` change state in Vercel.
 
 `Hallazgo` (Aguara):
 
