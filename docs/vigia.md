@@ -73,9 +73,9 @@ They can expose their access events over HTTP instead, and the vigía reads them
 {
   "apps": [
     {
-      "nombre": "nucleo",
+      "nombre": "my-app",
       "eventos_url": "https://api.example.com/api/seguridad/eventos",
-      "token": "VIGIA_TOKEN_NUCLEO",
+      "token": "VIGIA_TOKEN_MY_APP",
       "cuentas_vigiladas": ["you@example.com"]
     }
   ]

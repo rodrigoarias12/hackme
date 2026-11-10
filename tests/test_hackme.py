@@ -318,18 +318,18 @@ class Vigia(unittest.TestCase):
         filas = self.v.filas_de_eventos(eventos, ["ana@x.com"])
         self.assertEqual([(f["cuenta"], f["resultado"]) for f in filas],
                          [("ana@x.com", "pedido"), ("ana@x.com", "fallo"), (f"#{self.v.hash_email('otra@x.com')}", "ok")])
-        alertas = self.v.detectar_cuentas_vigiladas("nucleo", filas, {"1.2.3.4"})  # 1.2.3.4 es tuya
-        self.assertEqual([a["clave"] for a in alertas], ["nucleo:link-para:ana@x.com:9.9.9.9"])
+        alertas = self.v.detectar_cuentas_vigiladas("mi-app", filas, {"1.2.3.4"})  # 1.2.3.4 es tuya
+        self.assertEqual([a["clave"] for a in alertas], ["mi-app:link-para:ana@x.com:9.9.9.9"])
 
     def test_ip_que_llega_al_tope_de_la_app(self):
         eventos = [{"cuando": f"2026-11-07T04:0{i}:00+00:00", "tipo": "pedido-link",
                     "resultado": "limite-ip" if i > 4 else "no-registrado", "ip": "192.0.2.77",
                     "email_hash": "" if i > 4 else self.v.hash_email(f"u{i}@x.com")} for i in range(7)]
         filas = self.v.filas_de_eventos(eventos, [])
-        alertas = self.v.detectar_topes("nucleo", filas)
-        self.assertEqual([a["clave"] for a in alertas], ["nucleo:tope:192.0.2.77"])
+        alertas = self.v.detectar_topes("mi-app", filas)
+        self.assertEqual([a["clave"] for a in alertas], ["mi-app:tope:192.0.2.77"])
         self.assertIn("5 cuentas distintas", alertas[0]["detalle"])
-        logins, _ = self.v.detectar_logins("nucleo", filas, self.u, [], {}, [])
+        logins, _ = self.v.detectar_logins("mi-app", filas, self.u, [], {}, [])
         self.assertNotIn("A1", [a["deteccion"] for a in logins])  # los intentos sin email no son "una cuenta"
 
     def test_guardduty_baja_no_listada_no_avisa(self):
