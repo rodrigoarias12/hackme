@@ -14,7 +14,9 @@ uso: bin/hackme <comando>
                (--sin-avisar: imprime lo que avisaría y no guarda nada)
   caminos      caminos de ataque a lo más valioso, con la última ronda
   investigar   abre o refresca una investigación por cada pista seria, con su evidencia
-               investigar ver <id>
+               investigar ver <id> · investigar lista
+               investigar objetivos (qué repo revisar a fondo) · investigar cazado <carpeta>
+               investigar abrir <carpeta> --titulo "..." --severidad S --afirmacion "..."
                investigar anotar <id> [--estado E] [--tipo T --que "..." --donde "..."] [--proxima "..."]
   acciones     lo que hackme propone hacer: un PR con el arreglo, solo con el OK del dueño
                acciones proponer <investigación> --titulo "..." --plan "..."
@@ -105,6 +107,18 @@ def _investigar(args):
     from . import investigar
     if args[:1] == ["ver"] and len(args) > 1:
         print(investigar.ficha(investigar.leer(args[1])))
+    elif args[:1] == ["lista"]:
+        for i in sorted(investigar.todas(), key=lambda i: (i["estado"] != "pista", i["severidad"] != "crítica", i["id"])):
+            if i["estado"] != "arreglada" or "--todas" in args:
+                print(f"{i['id']:44} {i['estado']:11} {i['severidad']:8} {(i.get('fuente') or ''):18} {i['titulo'][:70]}")
+    elif args[:1] == ["objetivos"]:
+        ronda = json.loads((rutas.ESTADO / "ronda.json").read_text())
+        for o in investigar.objetivos(ronda)[:10]:
+            print(f"{o['puntos']:5.1f}  {o['carpeta']:24} {'; '.join(o['motivos'])}")
+    elif args[:1] == ["cazado"] and len(args) > 1:
+        print(f"{args[1]}: revisado a fondo el {investigar.cazado(args[1])}")
+    elif args[:1] == ["abrir"] and len(args) > 1:
+        print(investigar.ficha(investigar.abrir(args[1], _opcion(args, "--titulo"), _opcion(args, "--severidad"), _opcion(args, "--afirmacion"))))
     elif args[:1] == ["anotar"] and len(args) > 1:
         inv = investigar.anotar(args[1], estado=_opcion(args, "--estado"), tipo=_opcion(args, "--tipo"), que=_opcion(args, "--que"),
                                 donde=_opcion(args, "--donde") or "", proxima=_opcion(args, "--proxima"))

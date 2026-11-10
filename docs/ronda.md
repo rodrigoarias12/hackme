@@ -146,8 +146,13 @@ A source that didn't run (expired credentials) never closes its paths.
 ## `investigaciones`
 
 `ronda.investigaciones` is the result of `bin/hackme investigar`: `{nuevas, reabiertas, arregladas,
-errores, abiertas}`. `abiertas` lists every investigation that is not `arreglada` as `{id, repo,
-severidad, estado, titulo, proxima}`. The full record lives in
+errores, abiertas, objetivos}`. `abiertas` lists every investigation that is not `arreglada` as
+`{id, fuente, repo, donde, severidad, estado, titulo, proxima}`, leads first and most severe first.
+`objetivos` are the five repos to review in depth next: `{carpeta, puntos, motivos, ultima_revision}`.
+`fuente` is `vercel-security-review`, `aguara`, `radar`, `aws-guardduty`, `aws-security-hub`,
+`aws-inspector`, `vercel` or `agente`; `hackme/pistas.py` says what each source turns into a lead.
+An investigation that lives in a local repo also has `carpeta` (the folder) and a `sello`: what
+reopens it when it changes. The full record lives in
 `$HACKME_PRIVADO/investigaciones/<id>.json`:
 
 ```jsonc

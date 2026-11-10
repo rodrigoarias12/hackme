@@ -1,6 +1,6 @@
 ---
 name: hackme
-description: Daily security round over everything you run — your repos, your Mac, your AWS account and your Vercel teams. Hunts for vulnerabilities, turns every serious lead into an investigation with labeled evidence, and proposes the fix as a pull request that it opens only with your OK. Reports only what is new and actually affects you. Never blocks, never changes anything on its own.
+description: Daily security round over everything you run — your repos, your Mac, your AWS account and your Vercel teams. Proactively hunts for vulnerabilities, turns every serious lead from every source (Aguara, Oktsec Radar, GuardDuty, Security Hub, Inspector, Vercel) into an investigation with labeled evidence, reviews one repo in depth each round, and proposes the fix as a pull request that it opens only with your OK. Reports only what is new and actually affects you. Never blocks, never changes anything on its own.
 ---
 
 # hackme — daily security round
@@ -123,29 +123,65 @@ owner's OK) is fine.
 
 ## 4d. Investigate (`ronda.investigaciones`)
 
-The round opens an investigation for every serious lead (today: `crítica` and `alta` from Vercel
-Security Review) in `$HACKME_PRIVADO/investigaciones/<id>.json`, and already gathered what needs
-no execution: the code the lead cites, whether that code is still the same on the default branch,
-and at which commit. Your job is the verdict. For each one with `estado: pista`, most severe first
-(at most 5 per round; say how many are left):
+Be proactive: do not wait for the owner to ask. The round opens an investigation for **every
+serious lead from every source** in `$HACKME_PRIVADO/investigaciones/<id>.json`, and already
+gathered the evidence that needs no execution. Your job is the verdict.
+`bin/hackme investigar lista` shows them, most severe first.
 
-1. `bin/hackme investigar ver <id>`. Read the claim, the cited code and the automatic evidence.
-2. Read the code yourself, at that commit: the cited lines and what is around them (who calls
-   it, what input reaches it, what it runs with). Read only; never open secret files; never run
-   the target or anything against a live system.
+| Source (`fuente`) | What the lead is | How you verify it (read only) |
+|---|---|---|
+| `vercel-security-review` | A vulnerability in the owner's code, with cited lines | Read the cited code at that commit and what surrounds it: who calls it, what input reaches it |
+| `aguara` | A rule matched in a skill, `CLAUDE.md`, MCP config, workflow, or a hardcoded key | Read each flagged file (never a secret file). Test fixture, example or docs → `descartada`. A real instruction to read secrets or send data out → `confirmada` |
+| `radar` | An advisory that matches a version or a name in the inventory | Compare the locked or installed version with the affected range; check the code path is used |
+| `aws-guardduty` | Behaviour AWS found suspicious (IPs, user, times) | You cannot know who was behind an IP: ask the owner. If an earlier report already explains it, cite that |
+| `aws-security-hub` | A control the account fails | State what the control means for an attacker; the resource's real state is the owner's to confirm |
+| `aws-inspector` | Known CVEs in a deployed resource | Find which repo builds that resource and whether the vulnerable code is called |
+| `vercel` | Exposed variables, members without MFA, access requests | It is configuration hackme read directly; what is missing is whether it is intentional: ask |
+| `agente` | Something you found yourself while hunting (4f) | You opened it: add the evidence with file and line |
+
+For each one with `estado: pista`, most severe first (at most 5 verdicts per round; say how many
+are left):
+
+1. `bin/hackme investigar ver <id>`. Read the claim and the automatic evidence.
+2. Verify it as the table says. Never open secret files, never run the target, never test
+   anything against a live system.
 3. Write down what you saw, one fact per line, with file and line:
    `bin/hackme investigar anotar <id> --tipo observado --que "the file name comes from the query string unvalidated" --donde "src/files.ts:20"`.
    Use `deducido` for what you conclude and `sin-probar` for what only a run would show.
 4. Decide, and say what would change your mind:
-   - `--estado confirmada`: the code does what the lead says and you saw the path from the
-     attacker's input to the impact. It needs at least one `observado` of yours.
-   - `--estado descartada`: it is not reachable or not true; note why.
-   - `--estado bloqueada`: you could not tell (missing access, needs a run); note what is missing.
-   Add `--proxima "<next step>"`.
+   - `--estado confirmada`: it is real and you saw the path from the attacker's input to the
+     impact. It needs at least one `observado` of yours.
+   - `--estado descartada`: not reachable, not true, or the owner already explained it; note why.
+   - `--estado bloqueada`: you could not tell; note what is missing.
+   Add `--proxima "<next step>"`. When the next step is a question only the owner can answer
+   ("whose IP is this?", "is this variable meant to be public?"), leave it as `pista`, write the
+   question in `--proxima`, and put it in the report under "Questions for you".
 
-`reabiertas` are closed investigations whose cited code changed: look again. `arregladas` go in the
-report under "Closed". A confirmed investigation goes in "Affects you" with its evidence, each line
-tagged with its type; a `pista` you did not get to goes in "Check".
+`reabiertas` are closed investigations whose evidence changed (the cited code, the flagged files,
+a new IP): look again. `arregladas` go in the report under "Closed". A confirmed investigation goes
+in "Affects you" with its evidence, each line tagged with its type.
+
+## 4f. Hunt (`ronda.investigaciones.objetivos`)
+
+Scanners find what they were built to find. Every round, also go looking yourself:
+`bin/hackme investigar objetivos` ranks the repos by what the round saw in them (Aguara risk,
+serious findings, committed secrets, open investigations) and by how long since each was last
+reviewed. Take the first one and read it the way someone who wants in would:
+
+- How does someone get in: login, sessions, tokens, password reset, magic links, invitations.
+- Who can see what: is every query scoped to the caller's organization or user? Can an id from
+  another tenant be passed in?
+- What is exposed without a session: API routes, webhooks (is the signature checked?), cron
+  endpoints, admin or debug routes, file uploads and downloads.
+- What reaches a shell, a query, a file path, an outbound URL or an HTML page from user input.
+- What secrets the code expects, and whether any can reach the browser or a log.
+
+Read only, in the owner's checkout, at most ~30 minutes or one area of the repo per round; never
+open secret files and never run the app. For each thing that looks exploitable:
+`bin/hackme investigar abrir <folder> --titulo "…" --severidad <crítica|alta|media|baja> --afirmacion "what an attacker gets"`,
+then add the evidence with `anotar` and give the verdict like any other investigation. When you are
+done, `bin/hackme investigar cazado <folder>` so the next round takes another repo. Say in the
+report which repo you reviewed, which areas you covered and which you did not.
 
 ## 4e. Propose the fix (`bin/hackme acciones`)
 
@@ -180,6 +216,9 @@ find. `media` and `info` go in a short "Huella" section. It is heuristic: it mar
   For a confirmed investigation: its evidence, each line tagged `observado` / `deducido` / `sin-probar`.
 - **Proposed actions**: each PR waiting for the owner's OK, with the command to approve it, and the
   PRs already open.
+- **Questions for you**: what only the owner can answer to close an investigation (whose IP this
+  is, whether a public variable is intentional), one line each.
+- **Hunt**: the repo reviewed in depth this round, what was covered, what was found.
 - **Check**: what can't be confirmed from here and what to look at.
 - **Still open from previous days**: items from earlier reports (any mode) that haven't changed.
 - **Doesn't affect you**: one line per discarded advisory, so it's visible it was looked at.

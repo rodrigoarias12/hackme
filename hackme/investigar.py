@@ -1,9 +1,11 @@
 """Investigar: de pista a hallazgo, con evidencia.
 
 Lo que dice un escáner o un modelo es una pista, no un hallazgo. Este módulo abre una
-investigación por cada pista seria de la ronda y junta la evidencia que se puede juntar sin
-ejecutar nada: qué código cita la pista y si ese código sigue igual en la rama principal, en qué
-commit. Después el agente (skill, paso 4d) lee ese código, suma lo que vio y decide. Solo una
+investigación por cada pista seria de la ronda, venga de donde venga (Vercel Security Review,
+Aguara, Oktsec Radar, GuardDuty, Security Hub, Inspector, la configuración de Vercel; ver
+pistas.py) y junta la evidencia que se puede juntar sin ejecutar nada. También dice qué repo
+conviene revisar a fondo en esta ronda (`objetivos`) y deja que el agente abra sus propias
+investigaciones con lo que encuentre leyendo (`abrir`). Después el agente (skill, paso 4d) lee ese código, suma lo que vio y decide. Solo una
 investigación confirmada puede proponer una acción (acciones.py).
 
 Cada evidencia dice de qué tipo es, para que nadie afirme más de lo que se probó:
@@ -26,9 +28,10 @@ import re
 import shutil
 import subprocess
 
-from . import rutas
+from . import pistas, rutas
 
 CARPETA = rutas.PRIVADO / "investigaciones"
+CAZA = rutas.PRIVADO / "memoria" / "caza.json"   # cuándo se revisó a fondo cada repo
 SEVERIDADES = ("crítica", "alta")   # de ahí para arriba se investiga
 TOPE = 12                           # pistas nuevas por ronda: cada una son varias llamadas
 ESTADOS = ("pista", "confirmada", "descartada", "bloqueada", "arreglada")
@@ -206,7 +209,7 @@ def correr(ronda):
     # Lo que la fuente dejó de listar como abierto: se le pregunta a la fuente antes de darlo por arreglado.
     vivas = {h["id"] for h in vercel.get("hallazgos", []) if ":review:" in h["id"]}
     for origen, inv in existentes.items():
-        if origen in vivas or inv["estado"] == "arreglada" or not hay_herramientas:
+        if ":review:" not in origen or origen in vivas or inv["estado"] == "arreglada" or not hay_herramientas:
             continue
         try:
             detalle = detalle_review(origen.split(":")[1], origen.rsplit(":", 1)[-1])
@@ -219,9 +222,126 @@ def correr(ronda):
             inv["estado"] = "arreglada"
             guardar(inv)
             salida["arregladas"].append(inv["id"])
-    salida["abiertas"] = [{k: i.get(k) for k in ("id", "repo", "severidad", "estado", "titulo", "proxima")}
-                          for i in todas() if i["estado"] != "arreglada"]
+    _de_las_demas_fuentes(ronda, existentes, salida)
+    orden = {s: n for n, s in enumerate(SEVERIDADES)}
+    salida["abiertas"] = sorted(({k: i.get(k) for k in ("id", "fuente", "repo", "donde", "severidad", "estado", "titulo", "proxima")}
+                                 for i in todas() if i["estado"] != "arreglada"),
+                                key=lambda i: (i["estado"] != "pista", orden.get(i["severidad"], 9), i["id"]))
+    salida["objetivos"] = objetivos(ronda)[:5]
     return salida
+
+
+def _de_las_demas_fuentes(ronda, existentes, salida):
+    """Aguara, Radar, AWS y el resto de Vercel: abre, refresca, reabre y cierra con lo que trae la ronda."""
+    lista, sanas = pistas.de(ronda)
+    vivas = set()
+    for p in lista:
+        vivas.add(p["origen"])
+        evidencia = [_evidencia(t, que, donde) for t, que, donde in p["evidencia"]]
+        inv = existentes.get(p["origen"])
+        if not inv:
+            inv = {**{k: p[k] for k in ("id", "fuente", "origen", "repo", "carpeta", "rama", "donde", "severidad", "titulo", "afirmacion",
+                                        "arreglo_sugerido", "sello", "proxima")},
+                   "estado": "pista", "evidencia": evidencia, "citas": [], "notas": [],
+                   "reabrir_si": "cambia lo que la fuente reporta (archivos, versiones, IPs)", "creada": _ahora()}
+            salida["nuevas"].append(inv["id"])
+        else:
+            inv["evidencia"] = [e for e in inv["evidencia"] if e.get("quien") != "hackme"] + evidencia
+            inv.update({k: p[k] for k in ("severidad", "titulo", "donde", "repo", "rama")})
+            if inv.get("sello") != p["sello"] and inv["estado"] in CERRADAS + ("arreglada",):
+                inv["notas"].append(f"{_ahora()}: reabierta, estaba {inv['estado']} y cambió lo que reporta la fuente")
+                inv["estado"] = "pista"
+                salida["reabiertas"].append(inv["id"])
+            inv["sello"] = p["sello"]
+        guardar(inv)
+    # Lo que una fuente sana dejó de reportar está arreglado. Si la fuente falló, no se concluye nada.
+    for origen, inv in existentes.items():
+        if ":review:" in origen or inv.get("fuente") == "agente" or origen in vivas or inv["estado"] == "arreglada":
+            continue
+        if any(origen.startswith(prefijo) for prefijo in sanas):
+            inv["evidencia"].append(_evidencia("observado", "la fuente corrió bien en esta ronda y ya no lo reporta"))
+            inv["notas"].append(f"{_ahora()}: {inv['estado']} -> arreglada")
+            inv["estado"] = "arreglada"
+            guardar(inv)
+            salida["arregladas"].append(inv["id"])
+
+
+def objetivos(ronda):
+    """Qué repos conviene revisar a fondo, de más a menos urgente, con el porqué.
+
+    Es la parte proactiva: además de verificar lo que marcan las fuentes, el agente elige un repo
+    por ronda y lo lee como lo leería un atacante. El orden sale de las señales de la ronda y de
+    hace cuánto no se revisa cada uno.
+    """
+    aguara = ronda.get("aguara") or {}
+    caza = json.loads(CAZA.read_text()) if CAZA.exists() else {}
+    carpetas = list(aguara.get("por_repo") or {})
+    por_remoto = {(pistas.remoto(c)[0] or "").lower(): c for c in carpetas}   # las de Security Review traen owner/nombre
+    abiertas = {}
+    for i in todas():
+        if i["estado"] in ("pista", "confirmada"):
+            carpeta = i.get("carpeta") or por_remoto.get((i.get("repo") or "-").lower())
+            if carpeta:
+                abiertas[carpeta] = abiertas.get(carpeta, 0) + 1
+    hoy = datetime.date.today()
+    salida = []
+    for carpeta, dato in (aguara.get("por_repo") or {}).items():
+        puntos, motivos = 0.0, []
+        if dato.get("riesgo"):
+            puntos += dato["riesgo"] / 20
+            motivos.append(f"riesgo Aguara {dato['riesgo']:g}/100")
+        graves = sum(1 for h in aguara.get("importantes", []) if h["repo"] == carpeta)
+        if graves:
+            puntos += min(graves, 5)
+            motivos.append(f"{graves} hallazgos graves de Aguara")
+        if carpeta in (aguara.get("secretos_versionados") or {}):
+            puntos += 4
+            motivos.append("secretos versionados")
+        n = abiertas.get(carpeta, 0)
+        if n:
+            puntos += 2 * min(n, 4)
+            motivos.append(f"{n} investigaciones abiertas")
+        ultima = caza.get(carpeta)
+        dias = (hoy - datetime.date.fromisoformat(ultima)).days if ultima else None
+        if dias is None:
+            puntos += 4
+            motivos.append("nunca se revisó a fondo")
+        else:
+            puntos += min(dias / 7, 4)
+            motivos.append(f"revisado hace {dias} días")
+        if dias is not None and dias < 7:
+            puntos -= 6   # recién revisado: que le toque a otro
+        salida.append({"carpeta": carpeta, "puntos": round(puntos, 1), "motivos": motivos, "ultima_revision": ultima})
+    return sorted(salida, key=lambda o: (-o["puntos"], o["carpeta"]))
+
+
+def cazado(carpeta):
+    """Anota que hoy se revisó a fondo ese repo, para que la próxima vez le toque a otro."""
+    if not (rutas.GITHUB / carpeta).is_dir():
+        raise ValueError(f"no existe la carpeta {carpeta} en {rutas.GITHUB}")
+    caza = json.loads(CAZA.read_text()) if CAZA.exists() else {}
+    caza[carpeta] = datetime.date.today().isoformat()
+    CAZA.parent.mkdir(parents=True, exist_ok=True)
+    CAZA.write_text(json.dumps(caza, indent=1, sort_keys=True, ensure_ascii=False))
+    return caza[carpeta]
+
+
+def abrir(carpeta, titulo, severidad, afirmacion):
+    """Una investigación que abre el agente por lo que encontró leyendo un repo. Arranca como pista."""
+    if not (rutas.GITHUB / carpeta).is_dir():
+        raise ValueError(f"no existe la carpeta {carpeta} en {rutas.GITHUB}")
+    if severidad not in ("crítica", "alta", "media", "baja") or not titulo or not afirmacion:
+        raise ValueError("una investigación lleva --titulo, --afirmacion y --severidad (crítica, alta, media o baja)")
+    repo, rama = pistas.remoto(carpeta)
+    slug = re.sub(r"[^a-z0-9]+", "-", titulo.lower()).strip("-")[:40].strip("-")
+    inv = {"id": f"caza-{re.sub(r'[^a-z0-9]+', '-', carpeta.lower())[:20]}-{slug}", "fuente": "agente", "origen": f"agente:{carpeta}:{slug}",
+           "repo": repo, "carpeta": carpeta, "rama": rama, "donde": carpeta, "severidad": severidad, "titulo": titulo, "afirmacion": afirmacion,
+           "arreglo_sugerido": "", "estado": "pista", "evidencia": [], "citas": [], "notas": [], "sello": "",
+           "proxima": "anotar la evidencia (archivo y línea) y decidir", "reabrir_si": "cambia el código citado", "creada": _ahora()}
+    if _archivo(inv["id"]).exists():
+        raise ValueError(f"ya existe {inv['id']}: sumale evidencia con anotar")
+    guardar(inv)
+    return inv
 
 
 def anotar(inv_id, estado=None, tipo=None, que=None, donde="", proxima=None):
@@ -249,7 +369,7 @@ def anotar(inv_id, estado=None, tipo=None, que=None, donde="", proxima=None):
 
 def ficha(inv):
     """La investigación en texto, para leerla sin abrir el JSON."""
-    lineas = [f"{inv['id']} · {inv['estado'].upper()} · {inv['severidad']} · {inv['repo']}", inv["titulo"], "", inv.get("afirmacion", ""), "", "Evidencia:"]
+    lineas = [f"{inv['id']} · {inv['estado'].upper()} · {inv['severidad']} · {inv.get('fuente', '')} · {inv.get('repo') or inv.get('donde') or ''}", inv["titulo"], "", inv.get("afirmacion", ""), "", "Evidencia:"]
     for e in inv["evidencia"]:
         lineas.append(f"  [{e['tipo']:10}] {e['que']}" + (f"  ({e['donde']})" if e.get("donde") else "") + f"  — {e.get('quien', '?')}")
     if inv.get("arreglo_sugerido"):
@@ -259,9 +379,14 @@ def ficha(inv):
 
 
 def resumen(r):
-    por_estado = {}
+    por_estado, por_fuente = {}, {}
     for i in r["abiertas"]:
         por_estado[i["estado"]] = por_estado.get(i["estado"], 0) + 1
-    return (f"investigaciones: {len(r['abiertas'])} abiertas {por_estado or ''}, {len(r['nuevas'])} nuevas, "
-            f"{len(r['reabiertas'])} reabiertas, {len(r['arregladas'])} arregladas"
-            + "".join(f"  ERROR {k.rsplit(':', 1)[-1][:10]}: {v[:80]}" for k, v in r["errores"].items()))
+        por_fuente[i.get("fuente") or "?"] = por_fuente.get(i.get("fuente") or "?", 0) + 1
+    lineas = [f"investigaciones: {len(r['abiertas'])} abiertas {por_estado or ''} por fuente {por_fuente or ''}, {len(r['nuevas'])} nuevas, "
+              f"{len(r['reabiertas'])} reabiertas, {len(r['arregladas'])} arregladas"
+              + "".join(f"  ERROR {k.rsplit(':', 1)[-1][:10]}: {v[:80]}" for k, v in r["errores"].items())]
+    if r.get("objetivos"):
+        o = r["objetivos"][0]
+        lineas.append(f"próximo repo a revisar a fondo: {o['carpeta']} ({'; '.join(o['motivos'])})")
+    return "\n".join(lineas)

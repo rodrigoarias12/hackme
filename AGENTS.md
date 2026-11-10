@@ -7,8 +7,9 @@ hackme is a security agent that **hunts for vulnerabilities in everything its ow
 them with evidence, and proposes the fix**. Every day it inventories the owner's repos, Mac, AWS
 account and Vercel teams, scans the repos with [Aguara](https://github.com/garagon/aguara),
 cross-matches [Oktsec Radar](https://www.oktsec.com/radar) advisories against that inventory, reads
-what AWS GuardDuty / Security Hub / Inspector and Vercel Security Review found, and turns every
-serious lead into an investigation. It takes exactly one kind of action, a pull request with the
+what AWS GuardDuty / Security Hub / Inspector and Vercel found, and turns every serious lead from
+any of those sources into an investigation. Every round it also picks one repo and reviews it in
+depth, the way an attacker would. It takes exactly one kind of action, a pull request with the
 fix, and only after the owner approves that one action.
 
 ## Hard rules (do not relax)
@@ -88,8 +89,9 @@ requirement (`doctor`) or Telegram not configured (`bin/avisar`).
 - Layout: `hackme/inventario.py` (inventory), `aguara.py` (scan), `radar.py` (advisory
   matching), `aws.py` (AWS findings), `vercel.py` (Vercel teams, env var hygiene, previews,
   firewall, audit events), `vigia.py` (the 15-minute watch; detections are pure functions), `caminos.py` (attack paths built
-  from the round's evidence, with memory of opened and closed paths), `investigar.py` (leads to
-  investigations: gathers the evidence that needs no execution and keeps the ledger),
+  from the round's evidence, with memory of opened and closed paths), `pistas.py` (every source's serious findings in one
+  shape, with their automatic evidence), `investigar.py` (leads to investigations: keeps the
+  ledger, reopens and closes them, ranks which repo to review in depth next),
   `acciones.py` (the PR an investigation proposes: proposed, approved by the owner, prepared in a
   disposable clone, closed with the PR URL), `huella.py` (audits what the agent did, from the
   Claude Code session logs, against these rules),

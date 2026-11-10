@@ -55,10 +55,37 @@ def _api(ruta):
         req = urllib.request.Request(f"https://api.vercel.com{ruta}", headers={"Authorization": f"Bearer {token}"})
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.load(r)
-    r = subprocess.run(["vercel", "api", ruta], capture_output=True, text=True, timeout=120)
+    r = subprocess.run(["vercel", "api", ruta, "--scope", _alcance()], capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
-        raise RuntimeError((r.stderr.strip().splitlines() or [f"exit {r.returncode}"])[-1])
-    return json.loads(r.stdout)
+        raise RuntimeError(_motivo(r))
+    d = json.loads(r.stdout)
+    # El CLI >= 65 sin terminal contesta "action_required" con exit 0 en vez de fallar.
+    if isinstance(d, dict) and d.get("status") in ("action_required", "error") and "message" in d:
+        raise RuntimeError(f"vercel api: {d.get('reason')}: {d['message']}"[:200])
+    return d
+
+
+def _motivo(r):
+    """La última línea útil del error del CLI (sin las pistas que imprime para agentes)."""
+    lineas = [l for l in r.stderr.strip().splitlines() if l.strip() and not l.lstrip().startswith("<claude-code-hint")]
+    return (lineas or [f"exit {r.returncode}"])[-1][:200]
+
+
+_ALCANCE = []
+
+
+def _alcance():
+    """El CLI >= 65 pide --scope cuando corre sin terminal. Cada pedido lleva su teamId en la ruta,
+    así que el alcance no decide qué se lee: alcanza con el primer equipo de la sesión."""
+    if not _ALCANCE:
+        r = subprocess.run(["vercel", "teams", "ls", "--json"], capture_output=True, text=True, timeout=60)
+        if r.returncode != 0:
+            raise RuntimeError(_motivo(r))
+        equipos = json.loads(r.stdout).get("teams") or []
+        if not equipos:
+            raise RuntimeError("la sesión del CLI de Vercel no tiene equipos")
+        _ALCANCE.append(equipos[0]["slug"])
+    return _ALCANCE[0]
 
 
 def _q(ruta, **params):
@@ -180,7 +207,7 @@ def _chequeo(slug, hallazgos):
     r = subprocess.run(["vercel", "security", "check", "--json", "--non-interactive", "--scope", slug],
                        capture_output=True, text=True, timeout=180)
     if r.returncode != 0:
-        raise RuntimeError((r.stderr.strip().splitlines() or [f"exit {r.returncode}"])[-1])
+        raise RuntimeError(_motivo(r))
     for nombre, c in (json.loads(r.stdout).get("report") or {}).items():
         cantidad = c.get("violationsCount") or 0
         if not cantidad:
@@ -209,7 +236,7 @@ def _vulnerabilidades(slug, hallazgos):
                         "--status", "open", "--limit", "100", "--scope", slug],
                        capture_output=True, text=True, timeout=180)
     if r.returncode != 0:
-        motivo = (r.stderr.strip().splitlines() or [f"exit {r.returncode}"])[-1]
+        motivo = _motivo(r)
         if "isn't enabled" in motivo or "not_found" in motivo:
             return
         raise RuntimeError(motivo)

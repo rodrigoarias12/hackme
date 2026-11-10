@@ -128,10 +128,24 @@ vuelve a armar con la última ronda.
 ## De la pista al arreglo
 
 Lo que dice un escáner o un modelo es una pista, no un hallazgo. En cada ronda, cada pista seria
-(hoy, lo `crítico` y `alto` de Vercel Security Review) pasa a ser una **investigación** en el repo
-privado, y hackme junta lo que se puede sin ejecutar nada: el código que cita la pista, si ese
-código sigue igual en la rama principal y en qué commit. Después el agente lee el código y da el
-veredicto. Cada evidencia lleva su tipo, para que nadie afirme más de lo que se probó:
+de cualquier fuente pasa a ser una **investigación** en el repo privado, sin esperar a que
+preguntes:
+
+| Fuente | Qué abre una investigación |
+|---|---|
+| Vercel Security Review | Vulnerabilidades `critical` y `high` en tu código |
+| Aguara | Reglas críticas y altas en lo que leen los agentes, claves en el código, archivos de secretos versionados, paquetes comprometidos (una por regla y repo) |
+| Oktsec Radar | Un aviso que coincide con una versión de tu inventario, o con un nombre cuando ya se está explotando |
+| GuardDuty | Severidad 7 o más, agrupado por tipo y recurso |
+| Security Hub | Controles `CRITICAL` y `HIGH` que fallan |
+| Inspector | CVE `CRITICAL` y `HIGH`, agrupados por paquete y recurso |
+| Vercel | Secretos que llegan al navegador, miembros sin MFA, pedidos de acceso pendientes |
+| El agente | Lo que encuentra él: en cada ronda revisa un repo a fondo, como lo haría un atacante |
+
+hackme junta lo que se puede sin ejecutar nada (el código citado y si sigue igual, los archivos
+marcados, la versión lockeada, la configuración tal como la muestra la API). Después el agente
+verifica y da el veredicto. `bin/hackme investigar objetivos` dice qué repo sigue para la revisión
+a fondo, según lo que la ronda vio en cada uno y hace cuánto no se revisa. Cada evidencia lleva su tipo, para que nadie afirme más de lo que se probó:
 
 | Tipo | Quiere decir |
 |---|---|
@@ -141,14 +155,18 @@ veredicto. Cada evidencia lleva su tipo, para que nadie afirme más de lo que se
 
 Una investigación termina `confirmada` (necesita algo que el agente haya observado), `descartada`
 o `bloqueada` (con lo que falta). Una cerrada se reabre sola si cambia el código que citaba, y pasa
-a `arreglada` cuando la fuente la cierra.
+a `arreglada` cuando una fuente que corrió bien deja de reportarla. Solo las investigaciones que
+viven en un repo de GitHub pueden terminar en un pull request; para el resto (AWS, configuración de
+Vercel) los pasos van al informe, para vos.
 
 De una investigación confirmada el agente propone **una sola acción: un pull request con el
 arreglo**. Te llega por Telegram y la aprobás, de a una:
 
 ```
 bin/hackme investigar                      pistas → investigaciones con evidencia (lo corre la ronda)
+bin/hackme investigar lista                todas las investigaciones abiertas, de la más grave a la menos
 bin/hackme investigar ver <id>             la afirmación, la evidencia y el próximo paso
+bin/hackme investigar objetivos            qué repo revisar a fondo ahora, y por qué
 bin/hackme acciones                        lo propuesto, lo aprobado y lo hecho
 bin/hackme acciones aprobar <id>           tu OK para ese PR (en una terminal: escribís "si")
 ```

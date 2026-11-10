@@ -128,11 +128,24 @@ path against a live system. `bin/hackme caminos` rebuilds them from the last rou
 
 ## From lead to fix
 
-What a scanner or a model says is a lead, not a finding. Every round, each serious lead (today,
-`critical` and `high` from Vercel Security Review) becomes an **investigation** in the private
-repo, and hackme gathers what it can without running anything: the code the lead cites, whether
-that code is still the same on the default branch, and at which commit. Then the agent reads the
-code and gives a verdict. Every piece of evidence carries its type, so nobody states more than was
+What a scanner or a model says is a lead, not a finding. Every round, each serious lead from any
+source becomes an **investigation** in the private repo, without waiting for you to ask:
+
+| Source | What opens an investigation |
+|---|---|
+| Vercel Security Review | `critical` and `high` vulnerabilities in your code |
+| Aguara | Critical and high rules in what agents read, hardcoded keys, committed secret files, compromised packages (one per rule and repo) |
+| Oktsec Radar | An advisory that matches a version in your inventory, or a name when it is already being exploited |
+| GuardDuty | Severity 7 and up, grouped by type and resource |
+| Security Hub | Failed `CRITICAL` and `HIGH` controls |
+| Inspector | `CRITICAL` and `HIGH` CVEs, grouped by package and resource |
+| Vercel | Secrets that reach the browser, members without MFA, pending access requests |
+| The agent | What it finds itself: every round it reviews one repo in depth, the way an attacker would |
+
+hackme gathers what it can without running anything (the cited code and whether it is still the
+same, the flagged files, the locked version, the configuration as the API shows it). Then the
+agent verifies and gives a verdict. `bin/hackme investigar objetivos` says which repo is next for
+the in-depth review, from what the round saw in each and how long since it was last reviewed. Every piece of evidence carries its type, so nobody states more than was
 proven:
 
 | Type | Means |
@@ -143,14 +156,18 @@ proven:
 
 An investigation ends `confirmada` (it needs something the agent observed itself), `descartada` or
 `bloqueada` (with what is missing). A closed one reopens on its own if the code it cited changes,
-and becomes `arreglada` when the source closes it.
+and becomes `arreglada` when a source that ran fine stops reporting it. Only investigations that
+live in a GitHub repo can end in a pull request; for the rest (AWS, Vercel settings) the steps go
+in the report for you.
 
 From a confirmed investigation the agent proposes **one action: a pull request with the fix**. You
 get it on Telegram and approve it, one at a time:
 
 ```
 bin/hackme investigar                      leads → investigations with evidence (the round runs it)
+bin/hackme investigar lista                every open investigation, most severe first
 bin/hackme investigar ver <id>             the claim, the evidence and the next step
+bin/hackme investigar objetivos            which repo to review in depth next, and why
 bin/hackme acciones                        what is proposed, approved and done
 bin/hackme acciones aprobar <id>           your OK for that one PR (in a terminal: type "si")
 ```

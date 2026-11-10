@@ -77,12 +77,15 @@ def proponer(inv_id, titulo, plan):
     inv = investigar.leer(inv_id)
     if inv["estado"] != "confirmada":
         raise ValueError(f"la investigación {inv_id} está {inv['estado']}: solo una confirmada puede proponer una acción")
+    if not inv.get("repo"):
+        raise ValueError(f"{inv_id} no vive en un repo de GitHub ({inv.get('donde') or inv.get('fuente')}): no hay PR posible; "
+                         "los pasos van al informe para que los haga el dueño")
     if not titulo or not plan:
         raise ValueError("una propuesta lleva --titulo y --plan (qué archivos cambia y por qué)")
     accion_id = "pr-" + inv_id
     if _archivo(accion_id).exists() and leer(accion_id)["estado"] in ABIERTAS + ("ejecutada",):
         raise ValueError(f"ya hay una acción para esa investigación: {accion_id} ({leer(accion_id)['estado']})")
-    a = {"id": accion_id, "tipo": "pr", "investigacion": inv_id, "repo": inv["repo"], "base": inv["rama"], "rama": rama(accion_id),
+    a = {"id": accion_id, "tipo": "pr", "investigacion": inv_id, "repo": inv["repo"], "base": inv.get("rama") or "main", "rama": rama(accion_id),
          "titulo": titulo, "plan": plan, "severidad": inv["severidad"], "estado": "propuesta", "pr": None,
          "historia": [{"cuando": _ahora(), "de": None, "a": "propuesta"}]}
     guardar(a)

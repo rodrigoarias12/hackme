@@ -428,6 +428,102 @@ class Investigar(unittest.TestCase):
             self.acc.cerrar(a["id"], "https://github.com/otro/repo/pull/3")
 
 
+RONDA_FUENTES = {
+    "aguara": {"importantes": [
+        {"repo": "app", "regla": "MCP_016", "nombre": "Servidor MCP sin fijar", "severidad": "alta", "categoria": "mcp", "archivo": ".mcp.json", "linea": 3, "arreglo": None, "capa": "agéntica"},
+        {"repo": "app", "regla": "MCP_016", "nombre": "Servidor MCP sin fijar", "severidad": "crítica", "categoria": "mcp", "archivo": "otro/.mcp.json", "linea": 9, "arreglo": "Fijar la versión", "capa": "agéntica"}],
+        "secretos_versionados": {"web": [".npmrc"]}, "paquetes_comprometidos": {}, "errores": {}, "por_repo": {"app": {"riesgo": 80, "hallazgos": 2}, "web": {"riesgo": 10, "hallazgos": 0}}},
+    "radar": {"candidatos": [
+        {"slug": "lib-rce", "url": "https://www.oktsec.com/radar/lib-rce", "titulo": "lib: RCE", "prioridad": "act_now", "explotacion": "exploited", "kev": False, "parche": "available",
+         "accion": "Actualizar a 2.0", "afectado": [{"product": "lib", "range": "<2.0"}],
+         "coincidencias": [{"fuerza": "version-afectada", "tipo": "paquete npm", "nombre": "lib", "version": "1.4.0", "donde": "app/package-lock.json"}]},
+        {"slug": "solo-mencion", "url": "u", "titulo": "x", "prioridad": "act_now", "explotacion": "exploited", "kev": False, "afectado": [],
+         "coincidencias": [{"fuerza": "mencion", "tipo": "documentación", "nombre": "X", "version": None, "donde": "app (1 archivos)"}]}]},
+    "aws": {"cuentas": [{"cuenta": "111122223333", "errores": {}, "hallazgos": [
+        {"id": "g1", "servicio": "GuardDuty", "severidad": 8.0, "tipo": "Impact:IAMUser/AnomalousBehavior", "titulo": "Usuario raro", "recurso": "AccessKey",
+         "primera": "2026-07-01T00:00:00Z", "ultima": "2026-10-01T00:00:00Z", "veces": 3, "ips": ["203.0.113.9"], "origen": ["AR"]},
+        {"id": "g2", "servicio": "GuardDuty", "severidad": 5.0, "tipo": "Discovery:RDS/MaliciousIPCaller", "titulo": "Sondeo", "recurso": "RDSDBInstance",
+         "primera": "2026-07-01T00:00:00Z", "ultima": "2026-10-01T00:00:00Z", "veces": 1, "ips": ["203.0.113.8"], "origen": []},
+        {"id": "s1", "servicio": "Security Hub", "severidad": "CRITICAL", "titulo": "Base en subred pública", "recurso": "db/prod", "control": "RDS.46", "actualizado": "2026-11-01T00:00:00Z", "arreglo": "https://docs"},
+        {"id": "i1", "servicio": "Inspector", "severidad": "HIGH", "titulo": "CVE-2026-1 - parser", "recurso": "arn:aws:lambda:us-east-1:111122223333:function:f:$LATEST", "cve": "CVE-2026-1", "paquetes": ["parser 1.0 -> 1.2"]},
+        {"id": "i2", "servicio": "Inspector", "severidad": "HIGH", "titulo": "CVE-2026-2 - parser", "recurso": "arn:aws:lambda:us-east-1:111122223333:function:f:$LATEST", "cve": "CVE-2026-2", "paquetes": ["parser 1.0 -> 1.2"]}]}]},
+    "vercel": {"errores": {}, "hallazgos": [
+        {"id": "vercel:eq:web:publicas", "severidad": "alta", "titulo": "eq/web: 1 secreto con prefijo público", "recurso": "eq", "detalle": {"cantidad": 1, "nombres": ["NEXT_PUBLIC_API_SECRET"]}},
+        {"id": "vercel:eq:viejos", "severidad": "baja", "titulo": "viejos", "recurso": "eq", "detalle": {}}]},
+}
+
+
+class Pistas(unittest.TestCase):
+    """Todas las fuentes abren investigaciones, cada una con evidencia de su tipo."""
+
+    def setUp(self):
+        from unittest import mock
+        from hackme import investigar, pistas
+        self.inv, self.pistas = investigar, pistas
+        self.tmp = tempfile.TemporaryDirectory()
+        base = Path(self.tmp.name)
+        for carpeta in ("app", "web"):
+            (base / "github" / carpeta).mkdir(parents=True)
+        parches = [mock.patch.object(investigar, "CARPETA", base / "investigaciones"), mock.patch.object(investigar, "CAZA", base / "caza.json"),
+                   mock.patch.object(rutas, "GITHUB", base / "github"),
+                   mock.patch.object(pistas, "remoto", side_effect=lambda c: ("org/" + c, "main") if c == "app" else (None, None)),
+                   mock.patch.object(pistas, "_versionado", return_value=True)]
+        for x in parches:
+            x.start()
+            self.addCleanup(x.stop)
+        self.addCleanup(self.tmp.cleanup)
+
+    def test_una_pista_por_cada_cosa_seria_de_cada_fuente(self):
+        lista, sanas = self.pistas.de(RONDA_FUENTES)
+        self.assertEqual(sorted((p["fuente"], p["severidad"]) for p in lista), [
+            ("aguara", "crítica"), ("aguara", "crítica"), ("aws-guardduty", "alta"), ("aws-inspector", "alta"),
+            ("aws-security-hub", "crítica"), ("radar", "crítica"), ("vercel", "alta")])
+        self.assertEqual(lista[0]["severidad"], "crítica")  # lo más grave primero
+        mcp = next(p for p in lista if p["origen"] == "aguara:app:MCP_016")
+        self.assertEqual((mcp["repo"], mcp["titulo"]), ("org/app", "Servidor MCP sin fijar en 2 archivos de app"))  # una por regla, no por archivo
+        self.assertEqual([e[0] for e in mcp["evidencia"]], ["deducido", "observado", "observado", "sin-probar"])
+        insp = next(p for p in lista if p["fuente"] == "aws-inspector")
+        self.assertIn("2 vulnerabilidades en parser", insp["titulo"])  # los CVE del mismo paquete van juntos
+        self.assertEqual(sanas, {"aguara:app:", "aguara:web:", "radar:", "aws:111122223333:", "vercel:eq:"})
+
+    def test_se_abren_se_cierran_y_se_reabren_solas(self):
+        r = self.inv.correr(RONDA_FUENTES)
+        self.assertEqual(len(r["nuevas"]), 7)
+        gd = next(i for i in r["abiertas"] if i["fuente"] == "aws-guardduty")
+        self.inv.anotar(gd["id"], estado="descartada", tipo="observado", que="el dueño confirmó que es su IP")
+        self.assertEqual(self.inv.correr(RONDA_FUENTES)["reabiertas"], [])  # mismo dato: sigue descartada
+        otra = json.loads(json.dumps(RONDA_FUENTES))
+        otra["aws"]["cuentas"][0]["hallazgos"][0]["ips"] = ["198.51.100.4"]   # aparece una IP nueva
+        otra["radar"]["candidatos"] = []                                      # y el aviso de Radar ya no aplica
+        r = self.inv.correr(otra)
+        self.assertEqual((r["reabiertas"], r["arregladas"]), ([gd["id"]], ["radar-lib-rce"]))
+        self.assertTrue(any(e["quien"] == "agente" for e in self.inv.leer(gd["id"])["evidencia"]))  # lo anotado no se pierde
+
+    def test_una_fuente_caida_no_cierra_nada(self):
+        self.inv.correr(RONDA_FUENTES)
+        r = self.inv.correr({**RONDA_FUENTES, "aws": {"cuentas": [{"cuenta": "111122223333", "errores": {"credenciales": "sesión vencida"}, "hallazgos": []}]}})
+        self.assertEqual(r["arregladas"], [])
+
+    def test_solo_lo_que_vive_en_un_repo_puede_terminar_en_pr(self):
+        from unittest import mock
+        from hackme import acciones
+        r = self.inv.correr(RONDA_FUENTES)
+        sh = next(i for i in r["abiertas"] if i["fuente"] == "aws-security-hub")
+        self.inv.anotar(sh["id"], estado="confirmada", tipo="observado", que="el dueño lo vio en la consola")
+        with mock.patch.object(acciones, "CARPETA", Path(self.tmp.name) / "acciones"), self.assertRaises(ValueError):
+            acciones.proponer(sh["id"], "Sacar la base de la subred pública", "consola de AWS")
+
+    def test_objetivos_y_lo_que_encuentra_el_agente(self):
+        r = self.inv.correr(RONDA_FUENTES)
+        self.assertEqual([o["carpeta"] for o in r["objetivos"]], ["app", "web"])
+        self.assertIn("nunca se revisó a fondo", r["objetivos"][0]["motivos"])
+        inv = self.inv.abrir("app", "El webhook no valida la firma", "alta", "Cualquiera puede mandar eventos falsos.")
+        self.assertEqual((inv["fuente"], inv["estado"], inv["repo"]), ("agente", "pista", "org/app"))
+        self.inv.cazado("app")
+        self.assertEqual(self.inv.objetivos(RONDA_FUENTES)[0]["carpeta"], "web")  # recién revisado: le toca a otro
+        self.assertEqual(self.inv.correr(RONDA_FUENTES)["arregladas"], [])        # lo del agente no lo cierra una fuente
+
+
 class Huella(unittest.TestCase):
     """La huella lee lo que hizo el agente y marca lo que se sale de las reglas."""
 
