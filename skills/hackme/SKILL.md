@@ -149,7 +149,11 @@ tagged with its type; a `pista` you did not get to goes in "Check".
 
 ## 4e. Propose the fix (`bin/hackme acciones`)
 
-For a confirmed investigation whose fix you can describe concretely, propose one PR:
+First check that nobody is already fixing it: `gh pr list --repo <owner/name> --state open` and
+read the ones that touch the cited files. If one does, add it to the investigation as `observado`
+evidence (with the state of its checks), put it in the report and do not propose a duplicate.
+
+Otherwise, for a confirmed investigation whose fix you can describe concretely, propose one PR:
 `bin/hackme acciones proponer <id> --titulo "<what the PR does>" --plan "<files it changes and why, and how it will be tested>"`.
 Prefer the smallest change that closes the hole. The command prints the Telegram text: send it
 with `bin/avisar` (it says what is proposed and how to approve, not how to exploit it). Then stop.
