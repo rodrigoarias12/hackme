@@ -1,4 +1,4 @@
-"""hackme — agente de seguridad que solo observa.
+"""hackme — agente de seguridad: busca vulnerabilidades, junta evidencia y propone el arreglo.
 
 uso: bin/hackme <comando>
 
@@ -13,6 +13,13 @@ uso: bin/hackme <comando>
   vigia        la guardia de 15 minutos: ataques en curso, avisa por Telegram
                (--sin-avisar: imprime lo que avisaría y no guarda nada)
   caminos      caminos de ataque a lo más valioso, con la última ronda
+  investigar   abre o refresca una investigación por cada pista seria, con su evidencia
+               investigar ver <id>
+               investigar anotar <id> [--estado E] [--tipo T --que "..." --donde "..."] [--proxima "..."]
+  acciones     lo que hackme propone hacer: un PR con el arreglo, solo con el OK del dueño
+               acciones proponer <investigación> --titulo "..." --plan "..."
+               acciones aprobar <id> [--ok "palabras textuales del dueño"] · rechazar <id>
+               acciones preparar <id> · cerrar <id> --pr <url>
   huella       qué hizo el agente en las últimas 26 h, contra sus reglas
                (o pasale archivos .jsonl de sesiones de Claude Code)
 
@@ -90,6 +97,45 @@ def init():
     print(f"repo privado listo en {rutas.PRIVADO}. Si lo subís a GitHub, que sea privado.")
 
 
+def _opcion(args, nombre):
+    return args[args.index(nombre) + 1] if nombre in args and args.index(nombre) + 1 < len(args) else None
+
+
+def _investigar(args):
+    from . import investigar
+    if args[:1] == ["ver"] and len(args) > 1:
+        print(investigar.ficha(investigar.leer(args[1])))
+    elif args[:1] == ["anotar"] and len(args) > 1:
+        inv = investigar.anotar(args[1], estado=_opcion(args, "--estado"), tipo=_opcion(args, "--tipo"), que=_opcion(args, "--que"),
+                                donde=_opcion(args, "--donde") or "", proxima=_opcion(args, "--proxima"))
+        print(investigar.ficha(inv))
+    else:
+        ronda = json.loads((rutas.ESTADO / "ronda.json").read_text())
+        ronda["investigaciones"] = investigar.correr(ronda)
+        (rutas.ESTADO / "ronda.json").write_text(json.dumps(ronda, ensure_ascii=False, indent=1))
+        print(investigar.resumen(ronda["investigaciones"]))
+
+
+def _acciones(args):
+    from . import acciones
+    verbo, quien = (args + [None, None])[:2]
+    if verbo == "proponer" and quien:
+        a = acciones.proponer(quien, _opcion(args, "--titulo"), _opcion(args, "--plan"))
+        print(acciones.linea(a) + "\naviso: " + acciones.aviso(a))
+    elif verbo == "aprobar" and quien:
+        print(acciones.linea(acciones.aprobar(quien, _opcion(args, "--ok"))))
+    elif verbo == "rechazar" and quien:
+        print(acciones.linea(acciones.rechazar(quien, _opcion(args, "--motivo") or "")))
+    elif verbo == "preparar" and quien:
+        carpeta = acciones.preparar(quien)
+        print(f"listo: {carpeta} en la rama {acciones.rama(quien)}. El arreglo va ahí y sale como PR; "
+              "nunca se mergea, se deploya ni se empuja a la rama principal.")
+    elif verbo == "cerrar" and quien:
+        print(acciones.linea(acciones.cerrar(quien, _opcion(args, "--pr"))))
+    else:
+        print(acciones.resumen())
+
+
 def main(args):
     comando = args[0] if args else "ronda"
     if comando in ("-h", "--help", "help"):
@@ -119,6 +165,11 @@ def main(args):
         ronda["caminos"] = caminos.correr(ronda)
         (rutas.ESTADO / "ronda.json").write_text(json.dumps(ronda, ensure_ascii=False, indent=1))
         print(caminos.resumen(ronda["caminos"]))
+    elif comando in ("investigar", "acciones"):
+        try:
+            (_investigar if comando == "investigar" else _acciones)(args[1:])
+        except (ValueError, OSError, subprocess.CalledProcessError) as e:
+            sys.exit(f"{comando}: {e}")
     elif comando == "huella":
         from . import huella
         print(huella.resumen(huella.correr([a for a in args[1:] if not a.startswith("-")] or None)))

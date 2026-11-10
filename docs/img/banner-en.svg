@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="1200" height="380" role="img" aria-label="hackme: a security agent that only watches and warns">
-<title>hackme: a security agent that only watches and warns</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="1200" height="380" role="img" aria-label="hackme: a security agent that finds vulnerabilities, proves them and proposes the fix">
+<title>hackme: a security agent that finds vulnerabilities, proves them and proposes the fix</title>
 <style>
 text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; fill: #0D2020; }
 .t-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
@@ -45,8 +45,8 @@ text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Ar
 <rect class="fondo" x="0" y="0" width="1200" height="380"/>
 <text x="64" y="176" font-size="112" class="marca">hackme</text>
 <rect x="478" y="96" width="52" height="84" fill="#6BE386"/>
-<text x="68" y="232" font-size="22" class="t-muted">A security agent that watches everything you run</text>
-<text x="68" y="264" font-size="22" class="t-muted">and tells you only what affects you. It blocks nothing.</text>
+<text x="68" y="232" font-size="22" class="t-muted">Finds vulnerabilities in everything you run, proves them</text>
+<text x="68" y="264" font-size="22" class="t-muted">with evidence and, with your OK, opens the PR with the fix.</text>
 <text x="68" y="318" font-size="14" class="t-mono t-accent">Oktsec Radar · Aguara · AWS · Vercel · Claude Code</text>
 <circle class="anillo" cx="960" cy="190" r="37.5"/>
 <circle class="anillo" cx="960" cy="190" r="75.0"/>

@@ -210,7 +210,7 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
     <div class="hero-txt">
       <span class="eyebrow">Build in public · open source security agent</span>
       <h1 class="marca">hackme<span class="cursor" aria-hidden="true"></span></h1>
-      <p class="lede">An agent that watches everything I run. <em>Every 15 minutes</em> it checks whether I'm under attack; <em>once a day</em> it matches what's happening in the world against my projects. It only watches and warns: it blocks nothing.</p>
+      <p class="lede">An agent that hunts for vulnerabilities in everything I run. <em>Every 15 minutes</em> it checks whether I'm under attack; <em>once a day</em> it investigates every lead with evidence. When one is confirmed it proposes the fix and, <em>with my OK</em>, opens the PR.</p>
       <div class="cifras">
         <div class="cifra"><b>64</b><span>projects</span></div>
         <div class="cifra"><b>22,664</b><span>dependencies</span></div>
@@ -372,7 +372,9 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
           <div class="pieza"><div class="p-top"><b>Watch</b><span class="p-quien">no AI</span></div><p><i>What it is</i>A process every 15 minutes that reads, counts and compares against thresholds.</p><p class="p-hace"><i>What hackme does</i>Alerts while it happens: once per thing per day, 25 at most. No AI makes it cheap and always consistent.</p><div class="p-pie"><span class="p-cada">15 min</span></div></div>
           <div class="pieza"><div class="p-top"><b>Memory</b><span class="p-quien">hackme</span></div><p><i>What it is</i>What each source has already seen, with a stamp that changes when the finding changes.</p><p class="p-hace"><i>What hackme does</i>Only new and changed things alert. Each source's first run is a baseline: it records and stays quiet.</p><div class="p-pie"><span class="p-cada">every pass</span></div></div>
           <div class="pieza nueva"><div class="p-top"><b>Attack paths</b><span class="p-quien">hackme + Claude</span></div><p><i>What it is</i>Chains from an entry point to something valuable (your database, your AWS account, your secrets), with evidence for each step.</p><p class="p-hace"><i>What hackme does</i>Alerts when a path opens or closes. On Mondays, Claude writes the full audit.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">daily · Monday</span></div></div>
-          <div class="pieza nueva"><div class="p-top"><b>Footprint</b><span class="p-quien">hackme on itself</span></div><p><i>What it is</i>An audit of the agent itself, built from the sessions Claude Code keeps.</p><p class="p-hace"><i>What hackme does</i>Flags if it wrote outside its repos, opened a secret, changed something in the cloud or tried to block.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">every round</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Investigation</b><span class="p-quien">hackme + Claude</span></div><p><i>What it is</i>Every serious lead becomes an investigation. What a scanner says is a lead, not a finding.</p><p class="p-hace"><i>What hackme does</i>Gathers the evidence and labels it: observed, deduced or not tested. Claude reads the code and decides: confirmed, discarded or blocked.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">daily</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Actions</b><span class="p-quien">with your OK</span></div><p><i>What it is</i>The one thing hackme does besides reading: a pull request with the fix.</p><p class="p-hace"><i>What hackme does</i>Proposes it from a confirmed investigation and opens it only when you approve, one at a time. Never merges, deploys or touches production.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">when you approve</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Footprint</b><span class="p-quien">hackme on itself</span></div><p><i>What it is</i>An audit of the agent itself, built from the sessions Claude Code keeps.</p><p class="p-hace"><i>What hackme does</i>Flags if it wrote outside its repos, opened a secret, changed something in the cloud, opened a PR without your OK or tried to block.</p><div class="p-pie"><span class="p-nuevo">new</span><span class="p-cada">every round</span></div></div>
           <div class="pieza"><div class="p-top"><b>Telegram</b><span class="p-quien">the alert</span></div><p><i>What it is</i>The channel everything reaches you on.</p><p class="p-hace"><i>What hackme does</i>Only what's new: what happened, from where and what to do.</p><div class="p-pie"><span class="p-cada">right away</span></div></div>
         </div>
       </div>
@@ -569,8 +571,8 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
       <h2 id="reglas-t">Rules</h2>
     </div>
     <div class="reglas">
-      <div class="regla"><b>Observe only</b><span>No edits, no uninstalls, no changes in AWS or Vercel. Fixes go in the report as proposals.</span></div>
-      <div class="regla"><b>Never blocks</b><span>It warns. A person makes the call.</span></div>
+      <div class="regla"><b>Evidence first</b><span>A lead is not a finding. Every claim says whether it was observed, deduced or not tested.</span></div>
+      <div class="regla"><b>One PR, with your OK</b><span>The only thing it changes is a pull request with the fix, approved one at a time. Never blocks, merges or deploys.</span></div>
       <div class="regla"><b>Read-only users</b><span>If a key leaks, whoever has it can't change anything.</span></div>
       <div class="regla"><b>Secrets, never</b><span>It doesn't open .env files or ask for variable values. For anything exposed it gives the name, never the value.</span></div>
       <div class="regla"><b>Private stays private</b><span>The code is public. Reports and each app's queries live in a private repo.</span></div>

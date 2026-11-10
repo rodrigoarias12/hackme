@@ -336,6 +336,98 @@ class Vigia(unittest.TestCase):
         self.assertEqual(self.v.detectar_guardduty("1", [{"Type": "Recon:EC2/Portscan", "Severity": 2}]), [])
 
 
+DESCRIPCION = """**1. El nombre del archivo llega sin validar** - `src/files.ts:20-21`
+
+```typescript title="src/files.ts:20-21"
+  const ruta = path.join(BASE, req.query.nombre);
+  res.sendFile(ruta);
+```
+"""
+ARCHIVO = "import path from 'path';\n\nexport function bajar(req, res) {\n    const ruta = path.join(BASE,  req.query.nombre);\n    res.sendFile(ruta);\n}\n"
+PISTA = {"id": "vercel:eq:review:01ABCDEFGHJKMNPQRSTV", "severidad": "crítica", "recurso": "org/app",
+         "titulo": "org/app #1 (production): lee cualquier archivo", "detalle": {"rama": "main"}}
+DETALLE = {"title": "Lee cualquier archivo", "vulnerabilityClass": "path-traversal", "summary": "El nombre no se valida.",
+           "fix": "Rechazar nombres con ..", "description": DESCRIPCION, "branchRef": "main", "status": "open"}
+
+
+class Investigar(unittest.TestCase):
+    """De pista a hallazgo: la evidencia dice qué se vio, qué se dedujo y qué no se probó."""
+
+    def setUp(self):
+        from unittest import mock
+        from hackme import acciones, investigar
+        self.inv, self.acc = investigar, acciones
+        self.tmp = tempfile.TemporaryDirectory()
+        self.archivo = ARCHIVO
+        parches = [mock.patch.object(investigar, "CARPETA", Path(self.tmp.name) / "investigaciones"),
+                   mock.patch.object(acciones, "CARPETA", Path(self.tmp.name) / "acciones"),
+                   mock.patch.object(investigar.shutil, "which", return_value="/bin/x"),
+                   mock.patch.object(investigar, "detalle_review", side_effect=lambda slug, i: dict(DETALLE)),
+                   mock.patch.object(investigar, "leer_github", side_effect=lambda repo, rama, a: (self.archivo, "abc123def4567890"))]
+        for x in parches:
+            x.start()
+            self.addCleanup(x.stop)
+        self.addCleanup(self.tmp.cleanup)
+
+    def ronda(self, pistas=(PISTA,)):
+        return {"vercel": {"hallazgos": list(pistas), "errores": {}}}
+
+    def test_abre_una_investigacion_con_evidencia_de_cada_tipo(self):
+        r = self.inv.correr(self.ronda())
+        self.assertEqual(r["nuevas"], ["review-jkmnpqrstv"])
+        inv = self.inv.leer("review-jkmnpqrstv")
+        self.assertEqual((inv["estado"], inv["repo"], inv["citas"][0]["codigo"]), ("pista", "org/app", "sigue"))
+        self.assertEqual([e["tipo"] for e in inv["evidencia"]], ["deducido", "observado", "sin-probar"])
+        self.assertIn("src/files.ts:4 @ main abc123def456", inv["evidencia"][1]["donde"])  # la línea de hoy, no la citada
+
+    def test_una_pista_baja_no_se_investiga(self):
+        r = self.inv.correr(self.ronda([{**PISTA, "severidad": "media"}]))
+        self.assertEqual((r["nuevas"], r["abiertas"]), ([], []))
+
+    def test_confirmar_pide_que_el_agente_haya_visto_algo(self):
+        self.inv.correr(self.ronda())
+        with self.assertRaises(ValueError):
+            self.inv.anotar("review-jkmnpqrstv", estado="confirmada")
+        inv = self.inv.anotar("review-jkmnpqrstv", estado="confirmada", tipo="observado", que="el nombre llega de la query sin validar", donde="src/files.ts:4")
+        self.assertEqual((inv["estado"], inv["evidencia"][-1]["quien"]), ("confirmada", "agente"))
+
+    def test_se_reabre_sola_si_cambia_el_codigo_citado(self):
+        self.inv.correr(self.ronda())
+        self.inv.anotar("review-jkmnpqrstv", estado="descartada", tipo="observado", que="el repo es interno")
+        self.archivo = ARCHIVO.replace("req.query.nombre", "limpiar(req.query.nombre)")
+        r = self.inv.correr(self.ronda())
+        inv = self.inv.leer("review-jkmnpqrstv")
+        self.assertEqual((r["reabiertas"], inv["estado"], inv["citas"][0]["codigo"]), (["review-jkmnpqrstv"], "pista", "cambió"))
+        self.assertTrue(any(e["quien"] == "agente" for e in inv["evidencia"]))  # lo que anotó el agente no se pierde
+
+    def test_nunca_abre_un_archivo_de_secretos(self):
+        from unittest import mock
+        with mock.patch.object(self.inv, "detalle_review", return_value={**DETALLE, "description": DESCRIPCION.replace("src/files.ts", "deploy/.env")}):
+            self.inv.correr(self.ronda())
+        self.inv.leer_github.assert_not_called()
+        self.assertEqual(self.inv.leer("review-jkmnpqrstv")["citas"][0]["codigo"], "sin-leer")
+
+    def test_la_accion_sale_solo_de_una_confirmada_y_con_el_ok_del_dueno(self):
+        from unittest import mock
+        self.inv.correr(self.ronda())
+        with self.assertRaises(ValueError):  # todavía es una pista
+            self.acc.proponer("review-jkmnpqrstv", "Validar el nombre del archivo", "files.ts: rechazar ..")
+        self.inv.anotar("review-jkmnpqrstv", estado="confirmada", tipo="observado", que="el nombre llega sin validar")
+        a = self.acc.proponer("review-jkmnpqrstv", "Validar el nombre del archivo", "files.ts: rechazar ..")
+        self.assertEqual((a["id"], a["estado"], a["rama"]), ("pr-review-jkmnpqrstv", "propuesta", "hackme/pr-review-jkmnpqrstv"))
+        self.assertNotIn("files.ts", self.acc.aviso(a))  # el aviso no cuenta el detalle
+        with self.assertRaises(ValueError):  # sin aprobar no se prepara nada
+            self.acc.preparar(a["id"])
+        with mock.patch.object(self.acc.sys.stdin, "isatty", return_value=False):
+            with self.assertRaises(ValueError):  # sin terminal y sin las palabras del dueño, no
+                self.acc.aprobar(a["id"])
+            a = self.acc.aprobar(a["id"], ok="sí, abrilo")
+        self.assertEqual((a["estado"], a["historia"][-1]["por"], a["historia"][-1]["ok_citado"]), ("aprobada", "chat", "sí, abrilo"))
+        self.assertTrue(self.acc.esta_aprobada(a["id"]))
+        with self.assertRaises(ValueError):  # un PR de otro repo no cierra la acción
+            self.acc.cerrar(a["id"], "https://github.com/otro/repo/pull/3")
+
+
 class Huella(unittest.TestCase):
     """La huella lee lo que hizo el agente y marca lo que se sale de las reglas."""
 
@@ -370,6 +462,23 @@ class Huella(unittest.TestCase):
 
     def test_codigo_que_escribe_se_marca_para_revisar(self):
         self.assertIn(("escritura", "media"), self.reglas(["python3 - <<'EOF'\nopen('/etc/x', 'w').write('y')\nEOF"]))
+
+    def test_el_pr_de_una_accion_solo_con_el_ok_del_dueno(self):
+        from unittest import mock
+        from hackme import acciones
+        clon = acciones.TRABAJO / "pr-x"
+        cmds = [f"cd {clon} && git add -A && git commit -qm arreglo && git push -u origin hackme/pr-x", f"cd {clon} && gh pr create --title x --body y"]
+        with mock.patch.object(acciones, "esta_aprobada", return_value=True):
+            self.assertEqual(self.reglas(cmds), [])
+            self.assertEqual(self.reglas([f"cd {clon} && git push origin hackme/pr-x:main"]), [("cambios", "alta")])
+            self.assertEqual(self.reglas([f"cd {clon} && git push --force origin hackme/pr-x"]), [("cambios", "alta")])
+            self.assertEqual(self.reglas([f"cd {clon} && gh pr merge 3"]), [("cambios", "alta")])
+        with mock.patch.object(acciones, "esta_aprobada", return_value=False):
+            self.assertEqual(self.reglas(cmds), [("cambios", "alta"), ("escritura", "alta")])
+
+    def test_una_aprobacion_en_la_sesion_queda_a_la_vista(self):
+        self.assertEqual(self.reglas(['bin/hackme acciones aprobar pr-x --ok "dale"']), [("aprobación", "media")])
+        self.assertEqual(self.reglas(["bin/hackme acciones proponer review-x --titulo t --plan p"]), [])
 
     def test_solo_audita_sesiones_de_hackme(self):
         from hackme import huella

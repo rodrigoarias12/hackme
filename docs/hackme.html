@@ -197,7 +197,7 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
     <div class="hero-txt">
       <span class="eyebrow">Build in public · agente de seguridad open source</span>
       <h1 class="marca">hackme<span class="cursor" aria-hidden="true"></span></h1>
-      <p class="lede">Un agente que vigila todo lo que corro. <em>Cada 15 minutos</em> mira si me están atacando; <em>una vez por día</em> cruza lo que pasa en el mundo con mis proyectos. Solo mira y avisa: no bloquea nada.</p>
+      <p class="lede">Un agente que busca vulnerabilidades en todo lo que corro. <em>Cada 15 minutos</em> mira si me están atacando; <em>una vez por día</em> investiga cada pista con evidencia. Cuando confirma una, propone el arreglo y, <em>con mi OK</em>, abre el PR.</p>
       <div class="cifras">
         <div class="cifra"><b>64</b><span>proyectos</span></div>
         <div class="cifra"><b>22.664</b><span>dependencias</span></div>
@@ -359,7 +359,9 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
           <div class="pieza"><div class="p-top"><b>Vigía</b><span class="p-quien">sin IA</span></div><p><i>Qué es</i>Un proceso cada 15 minutos que lee, cuenta y compara con umbrales.</p><p class="p-hace"><i>Qué hace hackme</i>Avisa mientras pasa: una vez por cosa por día, máximo 25. Sin IA es barato y siempre responde igual.</p><div class="p-pie"><span class="p-cada">15 min</span></div></div>
           <div class="pieza"><div class="p-top"><b>Memoria</b><span class="p-quien">hackme</span></div><p><i>Qué es</i>Lo que ya vio cada fuente, con un sello que cambia si el hallazgo cambia.</p><p class="p-hace"><i>Qué hace hackme</i>Avisa solo lo nuevo y lo que cambió. La primera vez de cada fuente es línea de base: registra y no avisa.</p><div class="p-pie"><span class="p-cada">cada pasada</span></div></div>
           <div class="pieza nueva"><div class="p-top"><b>Caminos de ataque</b><span class="p-quien">hackme + Claude</span></div><p><i>Qué es</i>Cadenas de una entrada a algo valioso (tu base, tu cuenta de AWS, tus secretos), con la evidencia de cada paso.</p><p class="p-hace"><i>Qué hace hackme</i>Avisa cuando se abre o se cierra un camino. Los lunes, Claude escribe la auditoría completa.</p><div class="p-pie"><span class="p-nuevo">nuevo</span><span class="p-cada">diario · lunes</span></div></div>
-          <div class="pieza nueva"><div class="p-top"><b>Huella</b><span class="p-quien">hackme sobre sí mismo</span></div><p><i>Qué es</i>Una auditoría del propio agente, hecha con las sesiones que guarda Claude Code.</p><p class="p-hace"><i>Qué hace hackme</i>Marca si escribió fuera de sus repos, abrió un secreto, cambió algo en la nube o intentó bloquear.</p><div class="p-pie"><span class="p-nuevo">nuevo</span><span class="p-cada">cada ronda</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Investigación</b><span class="p-quien">hackme + Claude</span></div><p><i>Qué es</i>Cada pista seria pasa a ser una investigación. Lo que dice un escáner es una pista, no un hallazgo.</p><p class="p-hace"><i>Qué hace hackme</i>Junta la evidencia y la marca: observada, deducida o sin probar. Claude lee el código y decide: confirmada, descartada o bloqueada.</p><div class="p-pie"><span class="p-nuevo">nuevo</span><span class="p-cada">diario</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Acciones</b><span class="p-quien">con tu OK</span></div><p><i>Qué es</i>Lo único que hackme hace además de leer: un pull request con el arreglo.</p><p class="p-hace"><i>Qué hace hackme</i>Lo propone desde una investigación confirmada y lo abre recién cuando lo aprobás, de a uno. Nunca mergea, deploya ni toca producción.</p><div class="p-pie"><span class="p-nuevo">nuevo</span><span class="p-cada">cuando aprobás</span></div></div>
+          <div class="pieza nueva"><div class="p-top"><b>Huella</b><span class="p-quien">hackme sobre sí mismo</span></div><p><i>Qué es</i>Una auditoría del propio agente, hecha con las sesiones que guarda Claude Code.</p><p class="p-hace"><i>Qué hace hackme</i>Marca si escribió fuera de sus repos, abrió un secreto, cambió algo en la nube, abrió un PR sin tu OK o intentó bloquear.</p><div class="p-pie"><span class="p-nuevo">nuevo</span><span class="p-cada">cada ronda</span></div></div>
           <div class="pieza"><div class="p-top"><b>Telegram</b><span class="p-quien">el aviso</span></div><p><i>Qué es</i>El canal por el que te llega todo.</p><p class="p-hace"><i>Qué hace hackme</i>Solo lo nuevo: qué pasó, desde dónde y qué hacer.</p><div class="p-pie"><span class="p-cada">al momento</span></div></div>
         </div>
       </div>
@@ -511,8 +513,8 @@ footer .mono { font-family: var(--font-mono); font-size: 0.8125rem; }
       <h2 id="reglas-t">Reglas</h2>
     </div>
     <div class="reglas">
-      <div class="regla"><b>Solo observa</b><span>No edita, no desinstala, no cambia nada en AWS ni en Vercel. Los arreglos van como propuesta.</span></div>
-      <div class="regla"><b>No bloquea</b><span>Avisa. Las decisiones las toma una persona.</span></div>
+      <div class="regla"><b>Evidencia primero</b><span>Una pista no es un hallazgo. Cada afirmación dice si se observó, se dedujo o no se probó.</span></div>
+      <div class="regla"><b>Un PR, y con tu OK</b><span>Lo único que cambia es un pull request con el arreglo, aprobado de a uno. Nunca bloquea, mergea ni deploya.</span></div>
       <div class="regla"><b>Usuarios de solo lectura</b><span>Si una clave se filtra, el que la tiene no puede cambiar nada.</span></div>
       <div class="regla"><b>Secretos, nunca</b><span>No abre archivos .env ni pide valores de variables. De lo expuesto dice el nombre, nunca el valor.</span></div>
       <div class="regla"><b>Lo privado no sale</b><span>El código es público. Los informes y las consultas de cada app viven en un repo privado.</span></div>

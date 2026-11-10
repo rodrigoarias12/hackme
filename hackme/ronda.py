@@ -1,4 +1,4 @@
-"""La ronda completa: inventario (ya hecho por quien llama) -> Aguara -> Radar.
+"""La ronda completa: inventario (ya hecho por quien llama) -> Aguara -> Radar -> nube -> caminos -> investigaciones.
 
 Aguara va primero porque arma el espejo, y Radar lo usa para buscar menciones de
 proveedores en la documentación de los repos. Deja todo junto en estado/ronda.json para
@@ -7,7 +7,7 @@ que el agente de la tarea programada lo lea de un solo archivo.
 import datetime
 import json
 
-from . import aguara, aws, caminos, radar, rutas, vercel
+from . import aguara, aws, caminos, investigar, radar, rutas, vercel
 
 
 def correr(inv):
@@ -38,6 +38,8 @@ def correr(inv):
     }
     # Al final: los caminos de ataque se arman con lo que juntaron todas las fuentes.
     ronda["caminos"] = caminos.correr(ronda)
+    # Y las pistas serias pasan a investigación: evidencia primero, veredicto después (el agente).
+    ronda["investigaciones"] = investigar.correr(ronda)
     (rutas.ESTADO / "ronda.json").write_text(json.dumps(ronda, ensure_ascii=False, indent=1))
     return "\n".join([radar.resumen(rd), aguara.resumen(ag), aws.resumen(nube_aws), vercel.resumen(vc),
-                      caminos.resumen(ronda["caminos"]), f"-> {rutas.ESTADO / 'ronda.json'}"])
+                      caminos.resumen(ronda["caminos"]), investigar.resumen(ronda["investigaciones"]), f"-> {rutas.ESTADO / 'ronda.json'}"])

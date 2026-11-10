@@ -6,9 +6,11 @@ las de hackme: las que arrancan con el skill— y marca lo que se sale de AGENTS
 
   escritura   escribió fuera de sus dos repos (o tocó el código en vez de solo estado/)
   secretos    abrió un .env, credenciales, claves, o pidió valores en claro
-  cambios     un comando que cambia algo en AWS, Vercel o GitHub (fuera del repo privado)
+  cambios     un comando que cambia algo en AWS, Vercel o GitHub (fuera del repo privado y del
+              PR de una acción aprobada), o un push a la rama principal, forzado, o un merge
   salida      mandó algo a un host que no está en la lista (Telegram, las APIs que lee)
   bloqueo     desinstaló, limpió o prendió un modo que bloquea
+  aprobación  se aprobó una acción en la sesión: para que el dueño confirme que el OK fue suyo
   fuera       leyó archivos fuera de las carpetas de repos (informativo)
 
 Es heurístico: lee los comandos como texto, no los ejecuta. Marca para revisar; que no marque
@@ -23,7 +25,7 @@ import shlex
 import time
 from pathlib import Path
 
-from . import rutas
+from . import acciones, rutas
 
 SESIONES = Path(os.environ.get("HACKME_SESIONES", Path.home() / ".claude" / "projects"))
 # Cómo se reconoce una sesión de hackme: su primer pedido carga el skill.
@@ -114,6 +116,14 @@ def _permitido_escribir(p):
     return _dentro(p, *privados, rutas.ESTADO.resolve(), *temporales) or str(p) == "/dev/null"
 
 
+def _accion_de(p):
+    """Si la carpeta es el clon de trabajo de una acción (estado/trabajo/<id>), su id."""
+    trabajo = acciones.TRABAJO.resolve()
+    if p and _dentro(p, trabajo) and str(p) != str(trabajo):
+        return Path(p).relative_to(trabajo).parts[0]
+    return None
+
+
 def _lecturas_posibles():
     return (rutas.GITHUB.resolve(), rutas.PRIVADO.resolve(), rutas.RAIZ.resolve(), Path("/tmp").resolve(),
             Path("/private/tmp"), Path("/private/var/folders"))
@@ -169,7 +179,15 @@ def revisar_bash(cmd, cuando, cwd, variables):
                               (partes.index(a) == 0 or partes[partes.index(a) - 1] != "-C")), "")
                 if verbo in ("commit", "push", "add", "rm", "reset", "checkout", "merge", "rebase", "tag", "stash", "clean"):
                     g = Path(git_dir).resolve() if git_dir else None
-                    if not g or not _dentro(g, rutas.PRIVADO.resolve(), (rutas.GITHUB / "centinela-privado").resolve()):
+                    accion = _accion_de(g)
+                    if accion and acciones.esta_aprobada(accion):
+                        # El clon de una acción aprobada: se commitea y se empuja la rama del PR, nada más.
+                        if verbo == "merge" or (verbo == "push" and re.search(r"(\s|:)(main|master)(\s|$)|\s(-f|--force\S*)(\s|$)", s)):
+                            salida.append(_hallazgo("cambios", "alta", cuando, "Bash", crudo,
+                                                    f"git {verbo} hacia la rama principal o forzado: una acción solo empuja su rama hackme/…"))
+                    elif accion:
+                        salida.append(_hallazgo("escritura", "alta", cuando, "Bash", crudo, f"git {verbo} en la acción {accion}, que no tiene el OK del dueño"))
+                    elif not g or not _dentro(g, rutas.PRIVADO.resolve(), (rutas.GITHUB / "centinela-privado").resolve()):
                         salida.append(_hallazgo("escritura", "alta", cuando, "Bash", crudo,
                                                 f"git {verbo} en {g or 'carpeta desconocida'}: solo puede commitear en el repo privado"))
             elif prog == "aws" and len(partes) > 2:
@@ -184,8 +202,10 @@ def revisar_bash(cmd, cuando, cwd, variables):
                     salida.append(_hallazgo("cambios", "alta", cuando, "Bash", crudo, f"vercel {sub_cmd} puede cambiar algo"))
             elif prog == "gh" and len(partes) > 2:
                 if partes[1] in ("issue", "pr") and partes[2] in ("create", "comment", "close", "edit", "merge"):
-                    if "hackme-privado" not in s and "centinela-privado" not in s:
-                        salida.append(_hallazgo("cambios", "alta", cuando, "Bash", crudo, "issue o PR fuera del repo privado"))
+                    accion = _accion_de(Path(dir_actual).resolve()) if dir_actual else None
+                    pr_aprobado = partes[1:3] == ["pr", "create"] and accion and acciones.esta_aprobada(accion)
+                    if not pr_aprobado and "hackme-privado" not in s and "centinela-privado" not in s:
+                        salida.append(_hallazgo("cambios", "alta", cuando, "Bash", crudo, "issue o PR fuera del repo privado y sin una acción aprobada"))
                 elif partes[1] == "api" and re.search(r"(-X|--method)\s+(POST|PUT|PATCH|DELETE)", s):
                     salida.append(_hallazgo("cambios", "alta", cuando, "Bash", crudo, "gh api con un método que escribe"))
                 elif partes[1] == "repo" and partes[2] in ("edit", "delete", "rename", "archive"):
@@ -200,6 +220,8 @@ def revisar_bash(cmd, cuando, cwd, variables):
             if SECRETO_RUTA.search(palabra) and not palabra.endswith(".env.example") and partes and \
                     os.path.basename(partes[0]) in ("cat", "less", "more", "head", "tail", "sed", "awk", "grep", "cp", "open", "source", "."):
                 salida.append(_hallazgo("secretos", "alta", cuando, "Bash", crudo, f"lee {palabra}"))
+        if re.search(r"hackme\s+acciones\s+aprobar\b", s):
+            salida.append(_hallazgo("aprobación", "media", cuando, "Bash", crudo, "se aprobó una acción en esta sesión: confirmá que el OK fue tuyo"))
         if BLOQUEO.search(s):
             salida.append(_hallazgo("bloqueo", "media", cuando, "Bash", crudo, "desinstala, limpia o bloquea"))
         for host in re.findall(r"https?://([A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,})", s):

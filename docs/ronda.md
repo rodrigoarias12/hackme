@@ -142,3 +142,29 @@ Matched text is never included: Aguara redacts credential matches and hackme dro
 ```
 
 A source that didn't run (expired credentials) never closes its paths.
+
+## `investigaciones`
+
+`ronda.investigaciones` is the result of `bin/hackme investigar`: `{nuevas, reabiertas, arregladas,
+errores, abiertas}`. `abiertas` lists every investigation that is not `arreglada` as `{id, repo,
+severidad, estado, titulo, proxima}`. The full record lives in
+`$HACKME_PRIVADO/investigaciones/<id>.json`:
+
+```jsonc
+{
+  "id": "review-…", "fuente": "vercel-security-review", "origen": "vercel:<team>:review:<findingId>",
+  "repo": "owner/name", "rama": "main", "severidad": "crítica" | "alta", "clase": "…",
+  "afirmacion": "…", "arreglo_sugerido": "…",
+  "estado": "pista" | "confirmada" | "descartada" | "bloqueada" | "arreglada",
+  "evidencia": [{"tipo": "observado" | "deducido" | "sin-probar", "que": "…", "donde": "file:line @ branch sha",
+                 "cuando": "…", "quien": "hackme" | "agente"}],
+  "citas": [{"archivo": "…", "desde": 10, "hasta": 14, "sello": "…", "codigo": "sigue" | "cambió" | "sin-leer", "visto_en": "sha"}],
+  "proxima": "…", "reabrir_si": "…", "notas": ["…"]
+}
+```
+
+Evidence with `quien: "hackme"` is rebuilt every round (GitHub is read with `gh api`, GET only;
+files matching `rutas.SECRETOS` are never fetched). Evidence with `quien: "agente"` is what the
+agent wrote after reading the code and is never overwritten. Proposed pull requests live in
+`$HACKME_PRIVADO/acciones/<id>.json`: `{id, investigacion, repo, base, rama, titulo, plan, estado,
+pr, historia}` with `estado` `propuesta` → `aprobada` → `en-curso` → `ejecutada`, or `rechazada`.
