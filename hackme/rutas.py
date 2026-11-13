@@ -4,11 +4,35 @@ import subprocess
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
+
+# La configuración que dejó la instalación: líneas CLAVE=valor, solo claves HACKME_*. El entorno
+# manda: lo que ya viene exportado no se pisa. Así una tarea programada no depende de que alguien
+# se acuerde de exportar cada variable. Nunca guarda secretos: esos van en ~/.config/hackme/*.env.
+CONFIG = Path(os.environ.get("HACKME_CONFIG", Path.home() / ".config" / "hackme" / "config.env"))
+CLAVES = ("HACKME_GITHUB", "HACKME_PRIVADO", "HACKME_AGUARA", "HACKME_AWS", "HACKME_VIGIA", "HACKME_VIGIA_AWS",
+          "HACKME_IDIOMA", "HACKME_MODO")
+
+
+def leer_config(archivo=None):
+    """{clave: valor} del archivo de configuración. Ignora lo que no sea una clave conocida."""
+    archivo = archivo or CONFIG
+    if not archivo.is_file():
+        return {}
+    valores = {}
+    for linea in archivo.read_text().splitlines():
+        clave, igual, valor = linea.strip().partition("=")
+        if igual and clave in CLAVES and valor.strip():
+            valores[clave] = valor.strip().strip("\"'")
+    return valores
+
+
+for _clave, _valor in leer_config().items():
+    os.environ.setdefault(_clave, _valor)
 ESTADO = RAIZ / "estado"   # lo de una sola ronda; se borra sin perder nada
 ESPEJO = ESTADO / "espejo"  # copia liviana de los repos que escanea Aguara
 
-GITHUB = Path(os.environ.get("HACKME_GITHUB", Path.home() / "Documents" / "GitHub"))
-AGUARA = os.environ.get("HACKME_AGUARA", str(Path.home() / "go" / "bin" / "aguara"))
+GITHUB = Path(os.environ.get("HACKME_GITHUB", Path.home() / "Documents" / "GitHub")).expanduser()
+AGUARA = os.path.expanduser(os.environ.get("HACKME_AGUARA", str(Path.home() / "go" / "bin" / "aguara")))
 
 # Dónde corre esta ronda:
 #   todo -> los repos y la Mac (una corrida a mano en la Mac)
@@ -18,7 +42,7 @@ MODO = os.environ.get("HACKME_MODO", "todo")
 
 # Informes y memoria entre rondas viven en un repo PRIVADO aparte: dicen qué repo tiene qué
 # problema. Este repo (el código) puede ser público; ese nunca.
-PRIVADO = Path(os.environ.get("HACKME_PRIVADO", GITHUB / "hackme-privado"))
+PRIVADO = Path(os.environ.get("HACKME_PRIVADO", GITHUB / "hackme-privado")).expanduser()
 INFORMES = PRIVADO / "informes"
 MEMORIA = PRIVADO / "memoria" / MODO  # avisos ya vistos, hallazgos previos, hashes de --monitor
 

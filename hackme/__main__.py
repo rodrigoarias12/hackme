@@ -2,7 +2,10 @@
 
 uso: bin/hackme <comando>
 
-  doctor       chequea lo necesario y dice qué falta (correr primero)
+  doctor       qué está, qué falta y cómo se arregla: lo obligatorio, cada fuente y la rutina
+               (--json para un agente · --rapido: solo lo obligatorio)
+  config       la configuración guardada (~/.config/hackme/config.env)
+               config poner HACKME_GITHUB <carpeta> · config quitar <clave>
   init         crea el repo privado de informes y memoria si no existe
   ronda        inventario + Aguara + Radar + AWS -> estado/ronda.json
   inventario   solo el inventario -> estado/inventario.json
@@ -25,16 +28,15 @@ uso: bin/hackme <comando>
   huella       qué hizo el agente en las últimas 26 h, contra sus reglas
                (o pasale archivos .jsonl de sesiones de Claude Code)
 
-Configuración por variables de entorno: ver AGENTS.md. Códigos de salida: 0 ok,
+Configuración: `bin/hackme config` o variables de entorno (ver AGENTS.md). Para instalarlo con un
+agente: skills/hackme-setup/SKILL.md. Códigos de salida: 0 ok,
 1 error, 2 falta algo (doctor).
 """
 import json
 import os
-import shutil
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 from . import inventario, rutas
 
@@ -49,45 +51,6 @@ def _inventario():
     return inv
 
 
-def _version(args):
-    try:
-        r = subprocess.run(args, capture_output=True, text=True, timeout=20)
-        return (r.stdout or r.stderr).strip().splitlines()[0] if r.returncode == 0 else None
-    except (OSError, subprocess.TimeoutExpired, IndexError):
-        return None
-
-
-def doctor():
-    """Imprime un chequeo por línea: ok / falta / opcional. Sale 2 si falta algo obligatorio."""
-    falta = False
-
-    def linea(estado, que, detalle):
-        nonlocal falta
-        falta |= estado == "falta"
-        print(f"  {estado:8} {que:22} {detalle}")
-
-    print(f"hackme doctor (modo {rutas.MODO})")
-    linea("ok" if sys.version_info >= (3, 11) else "falta", "python >= 3.11", sys.version.split()[0])
-    for herramienta in ("git", "rsync", "grep"):
-        linea("ok" if shutil.which(herramienta) else "falta", herramienta, shutil.which(herramienta) or "no está en el PATH")
-    aguara = _version([rutas.AGUARA, "version"])
-    linea("ok" if aguara else "falta", "aguara", f"{rutas.AGUARA} ({aguara})" if aguara else
-          f"no está en {rutas.AGUARA}: go install github.com/garagon/aguara/cmd/aguara@latest, o HACKME_AGUARA")
-    linea("ok" if rutas.GITHUB.is_dir() else "falta", "carpeta de repos", f"{rutas.GITHUB} (HACKME_GITHUB)")
-    if rutas.GITHUB.is_dir():
-        linea("ok", "repos a revisar", f"{len(rutas.repos())} en modo {rutas.MODO}")
-    privado_ok = (rutas.PRIVADO / ".git").is_dir()
-    linea("ok" if privado_ok else "falta", "repo privado", f"{rutas.PRIVADO} (HACKME_PRIVADO)"
-          + ("" if privado_ok else " — correr: bin/hackme init"))
-    aws = _version(["aws", "--version"])
-    linea("ok" if aws else "opcional", "aws cli", aws or "sin AWS: la ronda saltea GuardDuty/Security Hub/Inspector")
-    telegram = all(os.environ.get(k) for k in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")) or \
-        (Path.home() / ".config" / "hackme" / "telegram.env").exists()
-    linea("ok" if telegram else "opcional", "telegram", "configurado" if telegram else
-          "sin avisos por Telegram: ver AGENTS.md")
-    sys.exit(2 if falta else 0)
-
-
 def init():
     """Crea el repo privado (git init) con sus carpetas. No lo publica en ningún lado."""
     rutas.INFORMES.mkdir(parents=True, exist_ok=True)
@@ -97,6 +60,37 @@ def init():
         (rutas.PRIVADO / "README.md").write_text(
             "# hackme-privado\n\nInformes y memoria de hackme. **Nunca hacer público este repo.**\n")
     print(f"repo privado listo en {rutas.PRIVADO}. Si lo subís a GitHub, que sea privado.")
+
+
+def _config(args):
+    """Muestra o cambia la configuración guardada. El entorno siempre manda sobre el archivo."""
+    guardado = rutas.leer_config()
+    if args[:1] in (["poner"], ["set"]) and len(args) == 3:
+        clave, valor = args[1], args[2]
+        if clave not in rutas.CLAVES:
+            sys.exit(f"config: {clave} no es una clave conocida. Las que hay: {', '.join(rutas.CLAVES)}")
+        if clave == "HACKME_MODO" and valor not in ("todo", "nube", "mac"):
+            sys.exit("config: HACKME_MODO es todo, nube o mac")
+        guardado[clave] = valor
+    elif args[:1] in (["quitar"], ["unset"]) and len(args) == 2:
+        guardado.pop(args[1], None)
+    elif args:
+        sys.exit("uso: bin/hackme config · config poner <CLAVE> <valor> · config quitar <CLAVE>")
+    if args:
+        rutas.CONFIG.parent.mkdir(parents=True, exist_ok=True)
+        rutas.CONFIG.write_text("# Configuración de hackme. La escribe `bin/hackme config poner`. Acá no van secretos.\n"
+                                + "".join(f"{k}={v}\n" for k, v in sorted(guardado.items())))
+        rutas.CONFIG.chmod(0o600)
+        print(f"guardado en {rutas.CONFIG}")
+    for clave in rutas.CLAVES:
+        if clave in guardado and os.environ.get(clave) in (None, guardado[clave]):
+            print(f"  {clave:18} {guardado[clave]}  (archivo)")
+        elif clave in os.environ and not args:
+            print(f"  {clave:18} {os.environ[clave]}  (entorno{', pisa al archivo' if clave in guardado else ''})")
+        elif clave in guardado:
+            print(f"  {clave:18} {guardado[clave]}  (archivo; en esta sesión manda el entorno)")
+        else:
+            print(f"  {clave:18} (por defecto)")
 
 
 def _opcion(args, nombre):
@@ -155,7 +149,10 @@ def main(args):
     if comando in ("-h", "--help", "help"):
         print(__doc__)
     elif comando == "doctor":
-        doctor()
+        from . import doctor
+        doctor.correr(args[1:])
+    elif comando == "config":
+        _config(args[1:])
     elif comando == "init":
         init()
     elif comando == "inventario":

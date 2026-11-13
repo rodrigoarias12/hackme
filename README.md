@@ -197,10 +197,35 @@ that go through MCP can also be recorded with [oktsec](https://www.oktsec.com) i
 
 ## Install
 
+### Let your agent install it
+
+Paste this into Claude Code (or Codex, Cursor, Gemini CLI):
+
+> Install hackme from https://github.com/rodrigoarias12/hackme. Clone it next to my projects,
+> read `skills/hackme-setup/SKILL.md` and follow it. Ask me before installing anything.
+
+The agent checks what you already have, installs what is missing with your OK, connects each
+source in read-only mode, runs the first round, explains the report and schedules the round to
+run every day. It never asks for a key or a password: logins are commands you run yourself. The
+whole script it follows is [skills/hackme-setup/SKILL.md](skills/hackme-setup/SKILL.md).
+
+In Claude Code you can also add it as a plugin, which brings both skills (`hackme` and
+`hackme-setup`):
+
+```
+/plugin marketplace add rodrigoarias12/hackme
+/plugin install hackme@hackme
+```
+
+Then ask it to *"set up hackme"*.
+
+### By hand
+
 ```bash
 git clone https://github.com/rodrigoarias12/hackme
 cd hackme
-bin/hackme doctor        # tells you what's missing (exit 2 if something required is)
+bin/hackme doctor        # what is there, what is missing and how to fix it (exit 2 if something required is missing)
+bin/hackme config poner HACKME_GITHUB ~/code    # only if your repos are not in ~/Documents/GitHub
 bin/hackme init          # creates the private repo for reports and memory (local git)
 bin/hackme ronda         # first round: everything becomes the baseline
 ```
@@ -208,8 +233,10 @@ bin/hackme ronda         # first round: everything becomes the baseline
 Requirements:
 
 - Python 3.11+ (stdlib only), git, rsync, grep.
-- [Aguara](https://github.com/garagon/aguara) v0.28+: `go install github.com/garagon/aguara/cmd/aguara@latest`.
-  In the cloud, `bin/preparar-nube` downloads the release and verifies its checksum.
+- [Aguara](https://github.com/garagon/aguara) v0.28+. `bin/instalar-aguara` downloads the official
+  release for macOS or Linux and refuses to install if the checksum does not match:
+  `bin/hackme config poner HACKME_AGUARA "$(bin/instalar-aguara)"`. Or, with Go:
+  `go install github.com/garagon/aguara/cmd/aguara@latest`.
 - Optional: AWS CLI with a read-only profile (GuardDuty, Security Hub, Inspector).
 - Optional: Vercel CLI logged in (`vercel login`), or a read-only `VERCEL_TOKEN`.
 - Optional: a Telegram bot (see [Telegram](#telegram)).
@@ -218,13 +245,14 @@ If you push the private repo to GitHub, **make it private**: it holds reports wi
 
 ### With your coding agent
 
-hackme is a CLI plus a skill, so any coding agent can drive it:
+hackme is a CLI plus two skills (`hackme` runs the round, `hackme-setup` installs it), so any
+coding agent can drive it:
 
 ```bash
 npx skills add rodrigoarias12/hackme   # Claude Code, Codex, Cursor, Gemini CLI, …
 ```
 
-Then ask it to *"run the hackme round"*. Agents working **on** this repo read
+Then ask it to *"set up hackme"* the first time and *"run the hackme round"* after that. Agents working **on** this repo read
 [AGENTS.md](AGENTS.md) first: hard rules, configuration and the output contract.
 
 ## Run it every day
@@ -267,7 +295,10 @@ notification (local) or an issue in the private repo (cloud).
 
 ## Configuration
 
-All through environment variables. The defaults work for a Mac with repos in `~/Documents/GitHub`.
+Save a setting with `bin/hackme config poner <VARIABLE> <value>`: it goes to
+`~/.config/hackme/config.env`, so scheduled runs find it without anyone exporting anything.
+`bin/hackme config` shows what is in effect. An environment variable always wins over the file,
+and the file never holds secrets. The defaults work for a Mac with repos in `~/Documents/GitHub`.
 
 | Variable | Default | What it is |
 |---|---|---|
@@ -277,6 +308,7 @@ All through environment variables. The defaults work for a Mac with repos in `~/
 | `HACKME_AGUARA` | `~/go/bin/aguara` | Aguara binary |
 | `HACKME_AWS` | `default:us-east-1` (`:us-east-1` in `nube`) | Comma-separated `profile:region` pairs. Empty profile = `AWS_*` credentials from the environment |
 | `HACKME_IDIOMA` | Spanish | Language the agent writes the report in |
+| `HACKME_PYTHON` | the first Python 3.11+ found | Interpreter `bin/hackme` uses (environment only) |
 | `VERCEL_TOKEN` | — | Read-only Vercel token (cloud). Locally the CLI session is used |
 | `HACKME_VIGIA` | `$HACKME_PRIVADO/vigia.json` | The vigía's app queries ([docs/vigia.md](docs/vigia.md)) |
 | `HACKME_VIGIA_AWS` | `HACKME_AWS` | `profile:region` pairs for the vigía; use a read-only profile |
@@ -285,7 +317,10 @@ All through environment variables. The defaults work for a Mac with repos in `~/
 ## Commands
 
 ```
-bin/hackme doctor       what's missing; exit 2 if something required is
+bin/hackme doctor       what is there, what is missing and how to fix it: requirements, each source,
+                        the daily routine (--json for an agent; exit 2 if something required is missing)
+bin/hackme config       saved settings (config poner <VARIABLE> <value>, config quitar <VARIABLE>)
+bin/instalar-aguara     download Aguara's official release, verify the checksum, print its path
 bin/hackme init         create the private repo if it doesn't exist
 bin/hackme ronda        full round → estado/ronda.json (~6 min for ~60 repos)
 bin/hackme inventario   inventory only → estado/inventario.json
@@ -361,7 +396,8 @@ contract for agents that change the code.
 ```
 hackme/                 this repo: code only, can be public
   hackme/               inventario, aguara, radar, aws, vercel, caminos, investigar, acciones, huella, …
-  skills/hackme/        the skill the agent follows
+  skills/hackme/        the skill the agent follows on every round
+  skills/hackme-setup/  the skill an agent follows to install hackme for a new owner
   docs/ronda.md            shape of estado/ronda.json
   docs/detecciones.md      detection catalog
   docs/vigia.md            the 15-minute watch

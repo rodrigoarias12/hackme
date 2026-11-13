@@ -1,0 +1,19 @@
+{
+  "name": "hackme",
+  "version": "0.2.0",
+  "description": "Security agent: hunts for vulnerabilities in your repos, your machine, AWS and Vercel, backs every lead with evidence and proposes the fix as a pull request it opens only with your OK. Never blocks.",
+  "author": {
+    "name": "Rodrigo Arias",
+    "url": "https://github.com/rodrigoarias12"
+  },
+  "homepage": "https://github.com/rodrigoarias12/hackme",
+  "repository": "https://github.com/rodrigoarias12/hackme",
+  "license": "Apache-2.0",
+  "keywords": [
+    "security",
+    "agent",
+    "vulnerabilities",
+    "aws",
+    "vercel"
+  ]
+}

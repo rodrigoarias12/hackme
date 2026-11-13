@@ -1,0 +1,17 @@
+{
+  "name": "hackme",
+  "owner": {
+    "name": "Rodrigo Arias",
+    "url": "https://github.com/rodrigoarias12"
+  },
+  "metadata": {
+    "description": "hackme, a security agent that hunts for vulnerabilities and proposes the fix with your OK."
+  },
+  "plugins": [
+    {
+      "name": "hackme",
+      "source": "./",
+      "description": "Security agent: hunts for vulnerabilities, backs every lead with evidence and proposes the fix as a pull request it opens only with your OK. Brings the skills hackme (daily round) and hackme-setup (install it for a new owner)."
+    }
+  ]
+}

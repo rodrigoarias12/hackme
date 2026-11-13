@@ -49,7 +49,7 @@ fix, and only after the owner approves that one action.
 ## Quick start for an agent
 
 ```bash
-bin/hackme doctor      # what is missing; exit 2 if something required is
+bin/hackme doctor      # what is there, what is missing, how to fix it (--json); exit 2 if something required is missing
 bin/hackme init        # creates the private repo if it doesn't exist (local git only)
 bin/hackme ronda       # full round (~6 min for ~60 repos) -> estado/ronda.json
 bin/hackme investigar  # serious leads -> investigations with evidence (the round runs it too)
@@ -59,7 +59,15 @@ bin/hackme acciones    # proposed, approved and executed actions
 Then follow the skill: [skills/hackme/SKILL.md](skills/hackme/SKILL.md). It explains how to
 judge `estado/ronda.json`, write the report and decide whether to notify.
 
-## Configuration (environment variables)
+Installing hackme for someone who has never used it is a different job with its own skill:
+[skills/hackme-setup/SKILL.md](skills/hackme-setup/SKILL.md). It asks before installing anything,
+never handles the owner's secrets and ends with the round scheduled to run every day.
+
+## Configuration
+
+Settings are saved with `bin/hackme config poner <VARIABLE> <value>` in
+`~/.config/hackme/config.env` (only `HACKME_*` keys, never secrets). An environment variable
+always wins over the file. `bin/hackme config` prints what is in effect and where it comes from.
 
 | Variable | Default | What it is |
 |---|---|---|

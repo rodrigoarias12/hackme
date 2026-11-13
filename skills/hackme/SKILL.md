@@ -18,6 +18,8 @@ This skill drives the hackme CLI. Look for it in `$HACKME_HOME`, then
 it (`git clone https://github.com/rodrigoarias12/hackme`) and run `bin/hackme doctor`. If
 doctor exits with 2, report what is missing and stop; do not try to install things the owner did
 not ask for, except `bin/hackme init` for the private repo and, in the cloud, `bin/preparar-nube`.
+If the owner asked you to install or set up hackme, that is a different job: follow
+`skills/hackme-setup/SKILL.md` instead of this skill.
 
 You run in one of two places; the caller sets `HACKME_MODO`:
 - **nube**: a cloud routine. You see the GitHub repos cloned into the session. There is no Mac.

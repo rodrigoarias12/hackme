@@ -644,5 +644,84 @@ class Secretos(unittest.TestCase):
         self.assertEqual(rutas.INCLUIR_ESPEJO, [".env.example"])
 
 
+class Instalacion(unittest.TestCase):
+    """Lo que necesita alguien que instala hackme de cero: configuración guardada y un doctor que explique."""
+
+    def test_config_solo_acepta_claves_conocidas(self):
+        with tempfile.TemporaryDirectory() as d:
+            archivo = Path(d) / "config.env"
+            archivo.write_text("# comentario\nHACKME_GITHUB=/tmp/repos\nHACKME_IDIOMA=\"English\"\n"
+                               "AWS_SECRET_ACCESS_KEY=no\nPATH=/malo\nHACKME_INVENTADA=x\nHACKME_AWS=\nsin igual\n")
+            self.assertEqual(rutas.leer_config(archivo), {"HACKME_GITHUB": "/tmp/repos", "HACKME_IDIOMA": "English"})
+            self.assertEqual(rutas.leer_config(Path(d) / "no-existe.env"), {})
+
+    def _hackme(self, casa, *args, **entorno):
+        raiz = Path(__file__).resolve().parent.parent
+        env = {"HOME": str(casa), "PATH": os.environ["PATH"], **entorno}
+        return subprocess.run([str(raiz / "bin" / "hackme"), *args], capture_output=True, text=True, env=env, timeout=120)
+
+    def test_config_poner_guarda_y_el_entorno_manda(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = self._hackme(d, "config", "poner", "HACKME_GITHUB", "/tmp/mis-repos")
+            self.assertEqual(r.returncode, 0, r.stderr)
+            archivo = Path(d) / ".config" / "hackme" / "config.env"
+            self.assertIn("HACKME_GITHUB=/tmp/mis-repos", archivo.read_text())
+            self.assertEqual(archivo.stat().st_mode & 0o777, 0o600)
+            self.assertIn("/tmp/mis-repos  (archivo)", self._hackme(d, "config").stdout)
+            self.assertIn("/otra  (entorno, pisa al archivo)", self._hackme(d, "config", HACKME_GITHUB="/otra").stdout)
+            self.assertNotEqual(self._hackme(d, "config", "poner", "AWS_PROFILE", "admin").returncode, 0)
+            self._hackme(d, "config", "quitar", "HACKME_GITHUB")
+            self.assertNotIn("HACKME_GITHUB=", archivo.read_text())
+
+    def test_doctor_de_un_usuario_nuevo_dice_que_falta_y_como_se_arregla(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = self._hackme(d, "doctor", "--rapido", "--json", HACKME_AGUARA=str(Path(d) / "no-hay-aguara"))
+            self.assertEqual(r.returncode, 2, r.stderr)
+            d_ = json.loads(r.stdout)
+            self.assertFalse(d_["listo"])
+            faltan = {c["que"]: c for c in d_["chequeos"] if c["estado"] == "falta"}
+            self.assertEqual(set(faltan), {"aguara", "carpeta de repos", "repo privado"})
+            self.assertIn("config poner HACKME_GITHUB", faltan["carpeta de repos"]["arreglo"])
+            self.assertIn("bin/hackme init", faltan["repo privado"]["arreglo"])
+
+    def test_el_error_del_cli_de_vercel_se_lee_aunque_venga_como_json(self):
+        from types import SimpleNamespace
+        from hackme import vercel
+        crudo = '<claude-code-hint v="1" />\n{"status":"error","reason":"login_required","message":"You\'re not logged in."}'
+        self.assertEqual(vercel._motivo(SimpleNamespace(stderr=crudo, returncode=1)), "login_required: You're not logged in.")
+        self.assertEqual(vercel._motivo(SimpleNamespace(stderr="Error: algo\n", returncode=1)), "Error: algo")
+        self.assertEqual(vercel._motivo(SimpleNamespace(stderr="", returncode=3)), "exit 3")
+
+    def test_ultimo_informe(self):
+        import datetime
+        from hackme import doctor
+        with tempfile.TemporaryDirectory() as d:
+            hoy = datetime.date(2026, 11, 12)
+            self.assertIsNone(doctor.ultimo_informe(Path(d), hoy))
+            for nombre in ("2026-11-09-mac.md", "2026-11-10-nube.md", "notas.md"):
+                (Path(d) / nombre).write_text("x")
+            self.assertEqual(doctor.ultimo_informe(Path(d), hoy), 2)
+
+    def test_texto_del_doctor_agrupa_y_resume(self):
+        from hackme import doctor
+        lista = [doctor._uno("obligatorio", "aguara", "falta", "no está", "bin/instalar-aguara"),
+                 doctor._uno("fuentes", "vercel", "opcional", "sin sesión", "vercel login"),
+                 doctor._uno("fuentes", "github", "ok", "sesión activa")]
+        t = doctor.texto(lista)
+        self.assertIn("Falta lo obligatorio: aguara.", t)
+        self.assertIn("→ bin/instalar-aguara", t)
+        self.assertIn("Sin conectar (1): vercel.", t)
+
+    def test_los_skills_tienen_nombre_y_descripcion(self):
+        raiz = Path(__file__).resolve().parent.parent
+        for nombre in ("hackme", "hackme-setup"):
+            cabeza = (raiz / "skills" / nombre / "SKILL.md").read_text().split("---")[1]
+            self.assertIn(f"name: {nombre}\n", cabeza)
+            self.assertIn("description: ", cabeza)
+        plugin = json.loads((raiz / ".claude-plugin" / "plugin.json").read_text())
+        mercado = json.loads((raiz / ".claude-plugin" / "marketplace.json").read_text())
+        self.assertEqual(plugin["name"], mercado["plugins"][0]["name"])
+
+
 if __name__ == "__main__":
     unittest.main()

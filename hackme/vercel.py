@@ -68,7 +68,12 @@ def _api(ruta):
 def _motivo(r):
     """La última línea útil del error del CLI (sin las pistas que imprime para agentes)."""
     lineas = [l for l in r.stderr.strip().splitlines() if l.strip() and not l.lstrip().startswith("<claude-code-hint")]
-    return (lineas or [f"exit {r.returncode}"])[-1][:200]
+    ultima = (lineas or [f"exit {r.returncode}"])[-1]
+    try:  # sin terminal el CLI contesta el error como JSON: {"status": "error", "reason": ..., "message": ...}
+        d = json.loads(ultima)
+        return f"{d['reason']}: {d['message']}"[:200]
+    except (ValueError, KeyError, TypeError):
+        return ultima[:200]
 
 
 _ALCANCE = []

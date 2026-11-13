@@ -1,0 +1,37 @@
+#!/bin/sh
+# Baja Aguara del release oficial, verifica el checksum y refresca su base de amenazas.
+# Sirve en macOS y Linux, sin Go. Lo deja en ~/.local/hackme-bin/aguara e imprime esa ruta
+# (lo demás va a stderr). Un agente lo corre solo con el OK del dueño.
+#   bin/hackme config poner HACKME_AGUARA "$(bin/instalar-aguara)"
+set -eu
+
+VERSION="${AGUARA_VERSION:-0.28.0}"
+case "$(uname -s)" in
+  Darwin) SO=darwin ;;
+  Linux) SO=linux ;;
+  *) echo "sistema no soportado: $(uname -s)" >&2; exit 1 ;;
+esac
+case "$(uname -m)" in
+  x86_64|amd64) ARCH=amd64 ;;
+  aarch64|arm64) ARCH=arm64 ;;
+  *) echo "arquitectura no soportada: $(uname -m)" >&2; exit 1 ;;
+esac
+
+DIR="${HOME}/.local/hackme-bin"
+mkdir -p "$DIR"
+cd "$DIR"
+# AGUARA_BASE existe para los tests: en uso real siempre es el release de GitHub.
+BASE="${AGUARA_BASE:-https://github.com/garagon/aguara/releases/download/v${VERSION}}"
+ARCHIVO="aguara_${VERSION}_${SO}_${ARCH}.tar.gz"
+curl -fsSL -o "$ARCHIVO" "$BASE/$ARCHIVO"
+curl -fsSL -o checksums.txt "$BASE/checksums.txt"
+LINEA=$(grep " ${ARCHIVO}\$" checksums.txt) || { echo "checksums.txt no trae ${ARCHIVO}: no se instala" >&2; exit 1; }
+if command -v sha256sum >/dev/null 2>&1; then
+  echo "$LINEA" | sha256sum -c - >&2
+else
+  echo "$LINEA" | shasum -a 256 -c - >&2
+fi
+tar -xzf "$ARCHIVO" aguara
+"$DIR/aguara" update >&2 || echo "aviso: aguara update falló; sigue con la base embebida" >&2
+
+echo "$DIR/aguara"
